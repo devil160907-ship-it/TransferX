@@ -1,0 +1,787 @@
+{% extends "base.html" %}
+{% block title %}Compose - TransferX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email.css') }}">
+<style>
+    .compose-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .compose-card {
+        padding: 2rem;
+    }
+
+    .compose-header {
+        margin-bottom: 2rem;
+    }
+
+    .compose-header h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .compose-header h2 i {
+        color: var(--primary);
+    }
+
+    .editor-toolbar {
+        display: flex;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        background: var(--glass-bg);
+        border-radius: 12px 12px 0 0;
+        border: 2px solid var(--glass-border);
+        border-bottom: none;
+        flex-wrap: wrap;
+    }
+
+    .editor-toolbar button {
+        background: none;
+        border: none;
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+
+    .editor-toolbar button:hover {
+        background: var(--glass-bg);
+        color: var(--primary);
+    }
+
+    .editor-toolbar button.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    #body {
+        border-radius: 0 0 12px 12px;
+        border-top: none;
+        min-height: 200px;
+        resize: vertical;
+    }
+
+    .upload-area {
+        border: 2px dashed var(--glass-border);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        background: var(--glass-bg);
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(79, 140, 255, 0.05);
+    }
+
+    .upload-area.dragover {
+        border-color: var(--primary);
+        background: rgba(79, 140, 255, 0.1);
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-area p {
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-hint {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+    }
+
+    .file-list {
+        margin-top: 1rem;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--glass-bg);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .file-item i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+
+    .file-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+    }
+
+    .file-size {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-left: 0.5rem;
+    }
+
+    .file-remove {
+        background: none;
+        border: none;
+        color: var(--error);
+        cursor: pointer;
+        padding: 0.25rem;
+        font-size: 1.2rem;
+        transition: var(--transition);
+    }
+
+    .file-remove:hover {
+        transform: scale(1.2);
+    }
+
+    .upload-progress {
+        margin-top: 1rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--glass-border);
+        border-radius: 3px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+        transition: width 0.3s ease;
+        border-radius: 3px;
+        width: 0%;
+    }
+
+    .progress-text {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+        display: block;
+        text-align: center;
+    }
+
+    .compose-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .compose-actions button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        border: none;
+    }
+
+    .compose-actions .btn-primary {
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+    }
+
+    .compose-actions .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(79, 140, 255, 0.3);
+    }
+
+    .compose-actions .btn-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .compose-actions .btn-secondary {
+        background: var(--glass-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--glass-border);
+    }
+
+    .compose-actions .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .compose-actions .btn-danger {
+        background: var(--error);
+        color: white;
+    }
+
+    .compose-actions .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(252, 129, 129, 0.3);
+    }
+
+    /* Send Animation Overlay */
+    .sending-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeInOverlay 0.3s ease;
+    }
+
+    .sending-overlay.active {
+        display: flex;
+    }
+
+    .sending-container {
+        text-align: center;
+        animation: slideUpModal 0.4s ease;
+    }
+
+    .sending-icon-wrapper {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .sending-icon-bg {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(79, 140, 255, 0.2), rgba(79, 140, 255, 0.05));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .sending-icon-bg i {
+        font-size: 3.5rem;
+        color: var(--primary);
+        animation: floatIcon 1.5s ease-in-out infinite;
+    }
+
+    .sending-ring {
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        right: -8px;
+        bottom: -8px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: var(--primary);
+        animation: spinRing 1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    .sending-ring:nth-child(2) {
+        top: -16px;
+        left: -16px;
+        right: -16px;
+        bottom: -16px;
+        border-top-color: rgba(79, 140, 255, 0.4);
+        animation-duration: 1.6s;
+        animation-direction: reverse;
+    }
+
+    .sending-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .sending-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .sending-progress-wrapper {
+        width: 320px;
+        max-width: 90vw;
+        margin: 0 auto;
+    }
+
+    .sending-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .sending-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        animation: progressPulse 2s ease-in-out infinite;
+    }
+
+    .sending-progress-text {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.85rem;
+        margin-top: 0.75rem;
+        display: block;
+    }
+
+    .sending-dots {
+        display: inline-flex;
+        gap: 4px;
+        margin-left: 4px;
+    }
+
+    .sending-dots span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--primary);
+        animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .sending-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .sending-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    /* Success state */
+    .sending-success .sending-icon-bg i {
+        color: #4ade80;
+    }
+
+    .sending-success .sending-ring {
+        border-top-color: #4ade80;
+    }
+
+    .sending-success .sending-title {
+        color: #4ade80;
+    }
+
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUpModal {
+        from {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes spinRing {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes floatIcon {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-8px) scale(1.05); }
+    }
+
+    @keyframes progressPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    @keyframes dotPulse {
+        0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+        40% { opacity: 1; transform: scale(1.2); }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .compose-card {
+            padding: 1rem;
+        }
+
+        .compose-actions {
+            flex-direction: column;
+        }
+
+        .compose-actions button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .editor-toolbar {
+            gap: 0.1rem;
+        }
+
+        .editor-toolbar button {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .sending-title {
+            font-size: 1.4rem;
+        }
+
+        .sending-icon-wrapper {
+            width: 80px;
+            height: 80px;
+        }
+
+        .sending-icon-bg {
+            width: 80px;
+            height: 80px;
+        }
+
+        .sending-icon-bg i {
+            font-size: 2.8rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .upload-area {
+            padding: 1rem;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+        }
+
+        .file-item {
+            flex-wrap: wrap;
+        }
+
+        .file-remove {
+            margin-left: auto;
+        }
+
+        .sending-progress-wrapper {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compose-container">
+    <div class="glass-card compose-card">
+        <div class="compose-header">
+            <h2><i class="bi bi-pencil-square"></i> Compose Email</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('routes.compose') }}" 
+              enctype="multipart/form-data" id="composeForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="sender"><i class="bi bi-person"></i> From</label>
+                <input type="text" id="sender" value="{{ current_user.username }} <{{ current_user.email }}>" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label for="recipient"><i class="bi bi-envelope"></i> To <span class="required">*</span></label>
+                <input type="text" id="recipient" name="recipient" required
+                       placeholder="Enter recipient email(s), separated by commas"
+                       autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="cc"><i class="bi bi-envelope-plus"></i> CC</label>
+                <input type="text" id="cc" name="cc" placeholder="CC recipients (separated by commas)">
+            </div>
+            
+            <div class="form-group">
+                <label for="bcc"><i class="bi bi-envelope-slash"></i> BCC</label>
+                <input type="text" id="bcc" name="bcc" placeholder="BCC recipients (separated by commas)">
+            </div>
+            
+            <div class="form-group">
+                <label for="subject"><i class="bi bi-tag"></i> Subject <span class="required">*</span></label>
+                <input type="text" id="subject" name="subject" required
+                       placeholder="Email subject">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="bi bi-chat"></i> Message <span class="required">*</span></label>
+                <div class="editor-toolbar">
+                    <button type="button" data-command="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+                    <button type="button" data-command="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+                    <button type="button" data-command="underline" title="Underline"><i class="bi bi-type-underline"></i></button>
+                    <button type="button" data-command="strike" title="Strikethrough"><i class="bi bi-type-strikethrough"></i></button>
+                    <span class="divider">|</span>
+                    <button type="button" data-command="justifyLeft" title="Align Left"><i class="bi bi-text-left"></i></button>
+                    <button type="button" data-command="justifyCenter" title="Center"><i class="bi bi-text-center"></i></button>
+                    <button type="button" data-command="justifyRight" title="Align Right"><i class="bi bi-text-right"></i></button>
+                    <span class="divider">|</span>
+                    <button type="button" data-command="insertUnorderedList" title="Bullet List"><i class="bi bi-list-ul"></i></button>
+                    <button type="button" data-command="insertOrderedList" title="Numbered List"><i class="bi bi-list-ol"></i></button>
+                </div>
+                <textarea id="body" name="body" rows="12" 
+                          placeholder="Write your message here..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="bi bi-paperclip"></i> Attachments</label>
+                <div class="upload-area" id="uploadArea">
+                    <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                    <p>Drag & drop files here or click to browse</p>
+                    <span class="upload-hint">Supported: Images, Videos, Audio, Documents, Archives, Code files</span>
+                    <input type="file" id="fileInput" name="attachments" multiple style="display:none">
+                </div>
+                <div class="file-list" id="fileList"></div>
+                <div class="upload-progress" id="uploadProgress" style="display:none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+            </div>
+            
+            <div class="compose-actions">
+                <button type="button" id="sendEmailBtn" class="btn-primary">
+                    <i class="bi bi-send"></i> Send Email
+                </button>
+                <button type="submit" name="action" value="save_draft" class="btn-secondary">
+                    <i class="bi bi-save"></i> Save Draft
+                </button>
+                <button type="reset" class="btn-danger">
+                    <i class="bi bi-trash"></i> Discard
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Sending Overlay -->
+<div class="sending-overlay" id="sendingOverlay">
+    <div class="sending-container">
+        <div class="sending-icon-wrapper">
+            <div class="sending-icon-bg">
+                <i class="bi bi-send" id="sendingIcon"></i>
+                <div class="sending-ring"></div>
+                <div class="sending-ring"></div>
+            </div>
+        </div>
+        <h2 class="sending-title" id="sendingTitle">Sending Email</h2>
+        <p class="sending-subtitle" id="sendingSubtitle">Please wait while your message is being delivered</p>
+        <div class="sending-progress-wrapper">
+            <div class="sending-progress-bar">
+                <div class="sending-progress-fill" id="sendingProgressFill"></div>
+            </div>
+            <span class="sending-progress-text" id="sendingProgressText">
+                Preparing to send<span class="sending-dots"><span></span><span></span><span></span></span>
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="{{ url_for('static', filename='js/email.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sendBtn = document.getElementById('sendEmailBtn');
+    const composeForm = document.getElementById('composeForm');
+    const sendingOverlay = document.getElementById('sendingOverlay');
+    const sendingProgressFill = document.getElementById('sendingProgressFill');
+    const sendingProgressText = document.getElementById('sendingProgressText');
+    const sendingTitle = document.getElementById('sendingTitle');
+    const sendingSubtitle = document.getElementById('sendingSubtitle');
+    const sendingIcon = document.getElementById('sendingIcon');
+    
+    // Progress simulation steps
+    const progressSteps = [
+        { progress: 15, text: 'Validating recipient addresses...' },
+        { progress: 30, text: 'Processing attachments...' },
+        { progress: 50, text: 'Preparing message content...' },
+        { progress: 70, text: 'Connecting to mail server...' },
+        { progress: 85, text: 'Sending your message...' },
+        { progress: 95, text: 'Finalizing delivery...' }
+    ];
+
+    let progressInterval = null;
+    let currentStep = 0;
+
+    sendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validate required fields
+        const recipient = document.getElementById('recipient').value.trim();
+        const subject = document.getElementById('subject').value.trim();
+        const body = document.getElementById('body').value.trim();
+
+        if (!recipient) {
+            alert('Please enter at least one recipient.');
+            document.getElementById('recipient').focus();
+            return;
+        }
+        if (!subject) {
+            alert('Please enter a subject.');
+            document.getElementById('subject').focus();
+            return;
+        }
+        if (!body) {
+            alert('Please enter a message.');
+            document.getElementById('body').focus();
+            return;
+        }
+
+        // Disable send button and show overlay
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="sending-dots"><span></span><span></span><span></span> Sending...';
+        
+        // Reset overlay state
+        sendingOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        sendingTitle.textContent = 'Sending Email';
+        sendingSubtitle.textContent = 'Please wait while your message is being delivered';
+        sendingIcon.className = 'bi bi-send';
+        sendingOverlay.classList.remove('sending-success');
+        sendingProgressFill.style.width = '0%';
+        currentStep = 0;
+
+        // Start progress animation
+        let progress = 0;
+        progressInterval = setInterval(() => {
+            if (currentStep < progressSteps.length) {
+                const step = progressSteps[currentStep];
+                progress = step.progress;
+                sendingProgressFill.style.width = progress + '%';
+                sendingProgressText.textContent = step.text + '...';
+                currentStep++;
+            }
+        }, 800);
+
+        // Submit the form via AJAX
+        const formData = new FormData(composeForm);
+        
+        fetch(composeForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(progressInterval);
+            
+            if (data.success) {
+                // Show success
+                sendingProgressFill.style.width = '100%';
+                sendingProgressText.textContent = '✓ Email sent successfully!';
+                sendingTitle.textContent = 'Email Sent!';
+                sendingSubtitle.textContent = 'Your message has been delivered successfully';
+                sendingIcon.className = 'bi bi-check-circle-fill';
+                sendingOverlay.classList.add('sending-success');
+                
+                // Redirect after delay
+                setTimeout(() => {
+                    window.location.href = data.redirect || '/sent';
+                }, 1800);
+            } else {
+                // Show error
+                sendingProgressFill.style.width = '100%';
+                sendingProgressFill.style.background = 'linear-gradient(90deg, #fc8181, #f56565)';
+                sendingProgressText.textContent = '✗ ' + (data.error || 'Failed to send email');
+                sendingTitle.textContent = 'Send Failed';
+                sendingSubtitle.textContent = 'Please try again or check your internet connection';
+                sendingIcon.className = 'bi bi-exclamation-circle-fill';
+                sendingIcon.style.color = '#fc8181';
+                
+                // Reset after delay
+                setTimeout(() => {
+                    resetSendButton();
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            console.error('Error sending email:', error);
+            
+            sendingProgressFill.style.width = '100%';
+            sendingProgressFill.style.background = 'linear-gradient(90deg, #fc8181, #f56565)';
+            sendingProgressText.textContent = '✗ Connection error. Please try again.';
+            sendingTitle.textContent = 'Connection Error';
+            sendingSubtitle.textContent = 'Unable to reach the server. Please check your connection.';
+            sendingIcon.className = 'bi bi-wifi-off';
+            sendingIcon.style.color = '#fc8181';
+            
+            setTimeout(() => {
+                resetSendButton();
+            }, 3000);
+        });
+    });
+
+    function resetSendButton() {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-send"></i> Send Email';
+        sendingOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        sendingProgressFill.style.background = 'linear-gradient(90deg, var(--gradient-start), var(--gradient-end))';
+        sendingIcon.style.color = '';
+    }
+
+    // Allow closing overlay on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sendingOverlay.classList.contains('active')) {
+            // Only close if not in success state
+            if (!sendingOverlay.classList.contains('sending-success')) {
+                resetSendButton();
+                clearInterval(progressInterval);
+            }
+        }
+    });
+
+    // Clean up interval if user navigates away
+    window.addEventListener('beforeunload', function() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+        }
+    });
+});
+</script>
+{% endblock %}

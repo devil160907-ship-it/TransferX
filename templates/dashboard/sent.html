@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}Sent Emails - TransferX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email.css') }}">
+<style>
+    /* Delete Modal Styles */
+    .delete-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeInOverlay 0.3s ease;
+    }
+
+    .delete-modal-overlay.active {
+        display: flex;
+    }
+
+    .delete-modal {
+        background: var(--bg-primary);
+        border-radius: 20px;
+        padding: 2.5rem;
+        max-width: 440px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUpModal 0.3s ease;
+        text-align: center;
+    }
+
+    .delete-modal-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: rgba(252, 129, 129, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 2.5rem;
+        color: var(--error);
+    }
+
+    .delete-modal h3 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-modal p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 1.75rem;
+        line-height: 1.5;
+    }
+
+    .delete-modal .email-preview {
+        background: var(--glass-bg);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        margin-bottom: 1.75rem;
+        word-break: break-word;
+        border: 1px solid var(--glass-border);
+    }
+
+    .delete-modal .email-preview strong {
+        color: var(--primary);
+    }
+
+    .delete-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    .delete-modal-actions button {
+        padding: 0.7rem 1.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.95rem;
+        border: none;
+        min-width: 100px;
+    }
+
+    .delete-modal-actions .btn-cancel {
+        background: var(--glass-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--glass-border);
+    }
+
+    .delete-modal-actions .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .delete-modal-actions .btn-confirm-delete {
+        background: linear-gradient(135deg, #fc8181, #f56565);
+        color: white;
+    }
+
+    .delete-modal-actions .btn-confirm-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(252, 129, 129, 0.3);
+    }
+
+    .delete-modal-actions .btn-confirm-delete:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .delete-spinner {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUpModal {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .delete-modal {
+            padding: 1.75rem;
+        }
+
+        .delete-modal-actions {
+            flex-direction: column;
+        }
+
+        .delete-modal-actions button {
+            width: 100%;
+        }
+
+        .delete-modal-icon {
+            width: 56px;
+            height: 56px;
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sent-container">
+    <div class="sent-header" data-aos="fade-down">
+        <h1><i class="bi bi-send"></i> Sent Emails</h1>
+        <div class="search-bar">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search emails..." 
+                   onkeyup="searchEmails(this.value)">
+        </div>
+    </div>
+    
+    <div class="sent-list glass-card" data-aos="fade-up">
+        {% if emails.items %}
+            {% for email in emails.items %}
+            <div class="email-item" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                <div class="email-checkbox">
+                    <input type="checkbox" class="email-select">
+                </div>
+                <div class="email-content">
+                    <div class="email-header">
+                        <span class="email-subject">{{ email.subject }}</span>
+                        <span class="email-date">{{ email.sent_at.strftime('%b %d, %Y %H:%M') }}</span>
+                    </div>
+                    <div class="email-meta">
+                        <span class="email-recipient">
+                            <i class="bi bi-envelope"></i> {{ email.recipient }}
+                        </span>
+                        {% if email.get_attachment_count() > 0 %}
+                        <span class="email-attachments">
+                            <i class="bi bi-paperclip"></i> {{ email.get_attachment_count() }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="email-actions">
+                    <a href="{{ url_for('routes.sent_details', email_id=email.id) }}" 
+                       class="btn-icon" title="View">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <button class="btn-icon btn-danger delete-btn" 
+                            data-email-id="{{ email.id }}"
+                            data-email-subject="{{ email.subject }}"
+                            data-email-recipient="{{ email.recipient }}"
+                            title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="pagination">
+                {% if emails.has_prev %}
+                <a href="{{ url_for('routes.sent', page=emails.prev_num, search=request.args.get('search', '')) }}" 
+                   class="page-link">&laquo; Previous</a>
+                {% endif %}
+                
+                <span class="page-info">
+                    Page {{ emails.page }} of {{ emails.pages }}
+                </span>
+                
+                {% if emails.has_next %}
+                <a href="{{ url_for('routes.sent', page=emails.next_num, search=request.args.get('search', '')) }}" 
+                   class="page-link">Next &raquo;</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h3>No sent emails</h3>
+                <p>Your sent emails will appear here</p>
+                <a href="{{ url_for('routes.compose') }}" class="btn-primary">
+                    <i class="bi bi-pencil-square"></i> Compose Email
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="delete-modal-overlay" id="deleteModal">
+    <div class="delete-modal">
+        <div class="delete-modal-icon">
+            <i class="bi bi-trash3"></i>
+        </div>
+        <h3>Delete Email?</h3>
+        <p>This action cannot be undone. The email will be permanently removed from your sent folder.</p>
+        <div class="email-preview" id="emailPreview">
+            <strong id="previewSubject">Loading...</strong>
+            <span id="previewRecipient"></span>
+        </div>
+        <div class="delete-modal-actions">
+            <button class="btn-cancel" id="cancelDeleteBtn">Cancel</button>
+            <button class="btn-confirm-delete" id="confirmDeleteBtn">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function searchEmails(query) {
+    if (query.length >= 2 || query.length === 0) {
+        window.location.href = "{{ url_for('routes.sent') }}?search=" + encodeURIComponent(query);
+    }
+}
+
+// Delete Modal Logic
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const previewSubject = document.getElementById('previewSubject');
+    const previewRecipient = document.getElementById('previewRecipient');
+    let currentEmailId = null;
+    let isDeleting = false;
+
+    // Get CSRF token from meta tag or form
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || 
+                     document.querySelector('meta[name="csrf-token"]')?.content;
+
+    // Open modal on delete button click
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const emailId = this.dataset.emailId;
+            const subject = this.dataset.emailSubject || 'Untitled';
+            const recipient = this.dataset.emailRecipient || 'Unknown';
+
+            currentEmailId = emailId;
+            previewSubject.textContent = subject;
+            previewRecipient.textContent = ` → ${recipient}`;
+            
+            // Reset confirm button state
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="bi bi-trash"></i> Delete';
+            
+            deleteModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Close modal functions
+    function closeModal() {
+        deleteModal.classList.remove('active');
+        document.body.style.overflow = '';
+        currentEmailId = null;
+    }
+
+    cancelBtn.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    // Confirm delete
+    confirmBtn.addEventListener('click', function() {
+        if (isDeleting || !currentEmailId) return;
+        isDeleting = true;
+
+        // Show loading state
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="delete-spinner"></span> Deleting...';
+
+        // Perform delete via fetch
+        fetch(`/delete-email/${currentEmailId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                closeModal();
+                // Remove the email item from DOM with animation
+                const emailItem = document.querySelector(`.delete-btn[data-email-id="${currentEmailId}"]`)?.closest('.email-item');
+                if (emailItem) {
+                    emailItem.style.transition = 'all 0.3s ease';
+                    emailItem.style.opacity = '0';
+                    emailItem.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        emailItem.remove();
+                        // Check if list is empty after removal
+                        const remainingItems = document.querySelectorAll('.email-item');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                } else {
+                    location.reload();
+                }
+            } else {
+                alert('Failed to delete email: ' + (data.error || 'Unknown error'));
+                // Reset button state
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="bi bi-trash"></i> Delete';
+                isDeleting = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting email:', error);
+            alert('An error occurred while deleting the email. Please try again.');
+            // Reset button state
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="bi bi-trash"></i> Delete';
+            isDeleting = false;
+        });
+    });
+});
+</script>
+{% endblock %}

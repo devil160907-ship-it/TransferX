@@ -1,0 +1,422 @@
+{% extends "dashboard/admin_base.html" %}
+
+{% block title %}Admin Dashboard - TransferX{% endblock %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h2>Dashboard</h2>
+            <p class="text-muted">Welcome back, {{ current_user.full_name or current_user.username }}! Here's an overview of your system.</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <a href="{{ url_for('admin.admin_users') }}" class="btn btn-outline-primary">
+                <i class="bi bi-people"></i> Manage Users
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Total Users</div>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="bi bi-person-check"></i> {{ active_users }} Active
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-envelope"></i>
+            </div>
+            <div class="stat-number">{{ total_emails }}</div>
+            <div class="stat-label">Total Emails Sent</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-paperclip"></i>
+            </div>
+            <div class="stat-number">{{ total_attachments }}</div>
+            <div class="stat-label">Total Attachments</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-hdd-stack"></i>
+            </div>
+            <div class="stat-number">{{ total_storage|filesizeformat }}</div>
+            <div class="stat-label">Storage Used</div>
+            <div class="storage-bar mt-2">
+                <div class="progress-fill" style="width: {{ (total_storage / 1073741824 * 100)|round(1) }}%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="table-container">
+            <div class="table-header">
+                <h5>Recent Activity</h5>
+                <div>
+                    <select class="form-select form-select-sm" id="activityDays" onchange="loadActivityStats()" style="width: auto; display: inline-block;">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div id="activityStats">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <h6>Emails Sent</h6>
+                            <h3 id="statsEmails">0</h3>
+                            <small class="text-muted">In the selected period</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <h6>New Users</h6>
+                            <h3 id="statsUsers">0</h3>
+                            <small class="text-muted">In the selected period</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="table-container">
+            <div class="table-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('routes.compose') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Compose Email
+                </a>
+                <a href="{{ url_for('admin.admin_users') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-person-plus"></i> Manage Users
+                </a>
+                <button class="btn btn-outline-secondary" onclick="loadStorage()">
+                    <i class="bi bi-hdd-stack"></i> View Storage
+                </button>
+                <button class="btn btn-outline-secondary" onclick="loadActivity()">
+                    <i class="bi bi-activity"></i> View Activity
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users & Emails -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="table-container">
+            <div class="table-header">
+                <h5>Recent Users</h5>
+                <a href="{{ url_for('admin.admin_users') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-sm">{{ user.username[0]|upper }}</div>
+                                    <div>
+                                        <div class="fw-semibold">{{ user.full_name or user.username }}</div>
+                                        <small class="text-muted">@{{ user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="status-badge {{ 'active' if user.is_active else 'inactive' }}">
+                                    {{ 'Active' if user.is_active else 'Inactive' }}
+                                </span>
+                                {% if user.email_verified %}
+                                    <span class="status-badge verified">Verified</span>
+                                {% else %}
+                                    <span class="status-badge unverified">Unverified</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-container">
+            <div class="table-header">
+                <h5>Recent Emails</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Recipient</th>
+                            <th>Sent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for email in recent_emails %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ email.subject|truncate(30) }}</div>
+                                <small class="text-muted">by {{ email.sender.username }}</small>
+                            </td>
+                            <td>{{ email.recipient|truncate(25) }}</td>
+                            <td>{{ email.sent_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No emails sent yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load Activity Stats
+function loadActivityStats() {
+    const days = document.getElementById('activityDays').value;
+    showLoading();
+    
+    fetch(`/admin/activity-logs?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('statsEmails').textContent = data.emails || 0;
+            document.getElementById('statsUsers').textContent = data.new_users || 0;
+            hideLoading();
+        })
+        .catch(err => {
+            console.error('Error loading activity stats:', err);
+            hideLoading();
+            showToast('Error', 'Failed to load activity stats.', 'error');
+        });
+}
+
+// Refresh Data
+function refreshData() {
+    showLoading();
+    location.reload();
+}
+
+// Storage Stats
+function loadStorage() {
+    showToast('Storage', 'Loading storage statistics...', 'info');
+    showLoading();
+    
+    fetch('/admin/storage-stats')
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            // Show storage stats in a modal or table
+            let html = '<h6>User Storage Usage</h6><div class="table-responsive"><table class="table table-sm">';
+            html += '<thead><tr><th>User</th><th>Used</th><th>Max</th><th>Usage</th></tr></thead><tbody>';
+            
+            data.forEach(user => {
+                const percentage = user.percentage || 0;
+                const barClass = percentage > 90 ? 'danger' : percentage > 70 ? 'warning' : '';
+                html += `<tr>
+                    <td>${user.username}</td>
+                    <td>${formatBytes(user.storage_used)}</td>
+                    <td>${formatBytes(user.max_storage)}</td>
+                    <td>
+                        <div class="storage-bar">
+                            <div class="progress-fill ${barClass}" style="width: ${percentage}%"></div>
+                        </div>
+                        <small>${percentage.toFixed(1)}%</small>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table></div>';
+            
+            // Show in modal
+            showModal('Storage Statistics', html);
+        })
+        .catch(err => {
+            console.error('Error loading storage stats:', err);
+            hideLoading();
+            showToast('Error', 'Failed to load storage stats.', 'error');
+        });
+}
+
+// Activity Logs
+function loadActivity() {
+    showLoading();
+    
+    fetch('/admin/activity-logs?days=7')
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            const html = `
+                <h6>Activity Overview (Last 7 Days)</h6>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <h5>${data.emails}</h5>
+                            <small class="text-muted">Emails Sent</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <h5>${data.new_users}</h5>
+                            <small class="text-muted">New Users</small>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted mt-3"><small>Period: ${data.days} days</small></p>
+            `;
+            showModal('Activity Logs', html);
+        })
+        .catch(err => {
+            console.error('Error loading activity:', err);
+            hideLoading();
+            showToast('Error', 'Failed to load activity logs.', 'error');
+        });
+}
+
+// System Info
+function loadSystemInfo() {
+    showLoading();
+    
+    fetch('/admin/storage-stats')
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            const totalUsers = data.length;
+            const totalStorage = data.reduce((sum, user) => sum + user.storage_used, 0);
+            
+            const html = `
+                <h6>System Information</h6>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Total Users</small>
+                            <h5>${totalUsers}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Total Storage Used</small>
+                            <h5>${formatBytes(totalStorage)}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Server Time</small>
+                            <h5>${new Date().toLocaleString()}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Admin</small>
+                            <h5>${'{{ current_user.username }}'}</h5>
+                        </div>
+                    </div>
+                </div>
+            `;
+            showModal('System Information', html);
+        })
+        .catch(err => {
+            console.error('Error loading system info:', err);
+            hideLoading();
+            showToast('Error', 'Failed to load system info.', 'error');
+        });
+}
+
+// Utility Functions
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function showModal(title, content) {
+    const modalHtml = `
+        <div class="modal fade" id="adminModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existing = document.getElementById('adminModal');
+    if (existing) {
+        existing.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+    modal.show();
+    
+    // Clean up on hide
+    document.getElementById('adminModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    loadActivityStats();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Details - TransferX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F8CFF;
+            --primary-dark: #3A7BD5;
+            --primary-light: #7BABFF;
+            --secondary: #6C63FF;
+            --gradient-start: #4F8CFF;
+            --gradient-end: #6C63FF;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(79, 140, 255, 0.15);
+            --text-primary: #1A2332;
+            --text-secondary: #4A5568;
+            --text-light: #A0AEC0;
+            --bg-primary: #F0F7FF;
+            --bg-secondary: #E8F0FE;
+            --success: #48BB78;
+            --error: #FC8181;
+            --warning: #F6AD55;
+            --info: #63B3ED;
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --nav-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F0F7FF 0%, #E8F0FE 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--glass-shadow);
+            min-height: var(--nav-height);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
+            font-weight: 500;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(30deg);
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: var(--glass-bg);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(79, 140, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 140, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(252, 129, 129, 0.3);
+        }
+
+        .btn-icon {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .btn-icon.btn-danger:hover {
+            background: var(--error);
+        }
+
+        .btn-public {
+            background: rgba(79, 140, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-public:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 140, 255, 0.3);
+        }
+
+        .email-details-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .email-details {
+            padding: 2rem;
+        }
+
+        .email-details-header {
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-actions-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .email-actions-top .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .email-actions-top .btn-secondary,
+        .email-actions-top .btn-danger,
+        .email-actions-top .btn-public {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .email-subject {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .email-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            font-size: 0.9rem;
+        }
+
+        .email-meta .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .email-meta .meta-item i {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .email-body {
+            padding: 1rem 0;
+            min-height: 200px;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        .email-body p {
+            margin-bottom: 1rem;
+        }
+
+        .email-body ul,
+        .email-body ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .email-body blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        .email-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .email-attachments {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .email-attachments h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .email-attachments h4 i {
+            margin-right: 0.5rem;
+        }
+
+        .attachments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .attachment-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(79, 140, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .attachment-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .attachment-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .attachment-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attachment-size {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .attachment-actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .attachment-actions .btn-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .custom-alert-overlay.active {
+            display: flex;
+        }
+
+        .custom-alert {
+            background: rgba(20, 30, 50, 0.95);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease;
+            text-align: center;
+        }
+
+        .custom-alert .alert-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .custom-alert .alert-icon.success {
+            color: var(--success);
+        }
+
+        .custom-alert .alert-icon.error {
+            color: var(--error);
+        }
+
+        .custom-alert .alert-icon.warning {
+            color: var(--warning);
+        }
+
+        .custom-alert .alert-icon.info {
+            color: var(--info);
+        }
+
+        .custom-alert h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .custom-alert p {
+            color: #e0e8f0;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .custom-alert .alert-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .custom-alert .alert-actions .btn-primary,
+        .custom-alert .alert-actions .btn-secondary,
+        .custom-alert .alert-actions .btn-danger {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.95rem;
+            min-width: 100px;
+        }
+
+        .custom-alert .alert-actions .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .custom-alert .alert-actions .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 9999;
+            animation: slideInRight 0.3s ease;
+            min-width: 300px;
+        }
+
+        .notification-toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification-toast.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .notification-toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .notification-toast.info {
+            border-left: 4px solid var(--info);
+        }
+
+        .notification-toast i {
+            font-size: 1.5rem;
+        }
+
+        .notification-toast.success i {
+            color: var(--success);
+        }
+
+        .notification-toast.error i {
+            color: var(--error);
+        }
+
+        .notification-toast.warning i {
+            color: var(--warning);
+        }
+
+        .notification-toast.info i {
+            color: var(--info);
+        }
+
+        .dismiss-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0 0.5rem;
+        }
+
+        .dismiss-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--primary);
+            animation: progress 5s linear forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .glass-nav {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .glass-card {
+                padding: 1.5rem;
+            }
+
+            .email-details {
+                padding: 1.5rem;
+            }
+
+            .email-subject {
+                font-size: 1.25rem;
+            }
+
+            .email-meta {
+                gap: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .email-actions-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .email-actions-top .action-buttons {
+                justify-content: flex-start;
+            }
+
+            .attachments-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .custom-alert {
+                padding: 1.5rem;
+                max-width: 95%;
+            }
+
+            .custom-alert .alert-icon {
+                font-size: 2.5rem;
+            }
+
+            .custom-alert h3 {
+                font-size: 1.1rem;
+            }
+
+            .notification-toast {
+                min-width: auto;
+                max-width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+
+            .nav-actions {
+                gap: 0.5rem;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+
+            .back-btn span {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glass-nav {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-brand {
+                font-size: 1.2rem;
+            }
+
+            .nav-brand i {
+                font-size: 1.6rem;
+            }
+
+            .email-actions-top .btn-secondary,
+            .email-actions-top .btn-danger,
+            .email-actions-top .btn-public {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.75rem;
+            }
+
+            .email-subject {
+                font-size: 1.1rem;
+            }
+
+            .attachment-item {
+                padding: 0.5rem;
+            }
+
+            .attachment-actions .btn-icon {
+                width: 26px;
+                height: 26px;
+                font-size: 0.7rem;
+            }
+
+            .custom-alert .alert-actions .btn-primary,
+            .custom-alert .alert-actions .btn-secondary,
+            .custom-alert .alert-actions .btn-danger {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                min-width: 80px;
+            }
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f1724;
+            --bg-secondary: #1a2332;
+            --text-primary: #e8f0fe;
+            --text-secondary: #a0aec0;
+            --text-light: #718096;
+            --glass-bg: rgba(26, 35, 50, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
+        }
+
+        [data-theme="dark"] .glass-nav {
+            background: rgba(26, 35, 50, 0.8);
+        }
+
+        [data-theme="dark"] .glass-card {
+            background: rgba(26, 35, 50, 0.5);
+        }
+
+        [data-theme="dark"] .btn-secondary {
+            background: rgba(26, 35, 50, 0.5);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .notification-toast {
+            background: rgba(26, 35, 50, 0.9);
+        }
+
+        [data-theme="dark"] .attachment-item {
+            background: rgba(26, 35, 50, 0.3);
+        }
+
+        [data-theme="dark"] .attachment-icon {
+            background: rgba(79, 140, 255, 0.15);
+        }
+
+        [data-theme="dark"] .custom-alert {
+            background: rgba(20, 30, 50, 0.98);
+        }
+
+        [data-theme="dark"] .custom-alert-overlay {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        [data-theme="dark"] .back-btn {
+            background: rgba(26, 35, 50, 0.5);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .back-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        [data-aos] {
+            pointer-events: none;
+        }
+
+        [data-aos].aos-animate {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="glass-nav">
+            <div style="display:flex; align-items:center; gap:1.5rem;">
+                <a href="{{ url_for('routes.dashboard') }}" class="nav-brand">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <span>TransferX</span>
+                </a>
+                <a href="{{ url_for('routes.dashboard') }}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="bi bi-moon"></i>
+                </button>
+                <a href="{{ url_for('routes.profile') }}" class="nav-link">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <div class="email-details-container">
+                <div class="email-details glass-card" data-aos="fade-up">
+                    <div class="email-details-header">
+                        <div class="email-actions-top">
+                            <a href="{{ url_for('routes.sent') }}" class="btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Sent
+                            </a>
+                            <div class="action-buttons">
+                                <button onclick="window.print()" class="btn-secondary">
+                                    <i class="bi bi-printer"></i>
+                                </button>
+                                {% if public_url %}
+                                <a href="{{ public_url }}" target="_blank" class="btn-public">
+                                    <i class="bi bi-globe"></i> View Public Copy
+                                </a>
+                                {% endif %}
+                                <button onclick="showCustomAlert('warning', 'Delete Email', 'Are you sure you want to delete this email? This action cannot be undone.', 'Delete', 'Cancel', function() { document.getElementById('deleteForm').submit(); })" class="btn-danger">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                                <form id="deleteForm" method="POST" action="{{ url_for('routes.delete_email', email_id=email.id) }}" style="display:none;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <h2 class="email-subject">{{ email.subject }}</h2>
+                        
+                        <div class="email-meta">
+                            <div class="meta-item">
+                                <i class="bi bi-person"></i>
+                                <span>From: {{ email.sender.username }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-envelope"></i>
+                                <span>To: {{ email.recipient }}</span>
+                            </div>
+                            {% if email.cc %}
+                            <div class="meta-item">
+                                <i class="bi bi-envelope-plus"></i>
+                                <span>CC: {{ email.cc }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="meta-item">
+                                <i class="bi bi-clock"></i>
+                                <span>{{ email.sent_at.strftime('%B %d, %Y at %H:%M') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="email-body">
+                        {% if email.body_html %}
+                            {{ email.body_html|safe }}
+                        {% else %}
+                            {{ email.body|replace('\n', '<br>')|safe }}
+                        {% endif %}
+                    </div>
+                    
+                    {% if attachments %}
+                    <div class="email-attachments">
+                        <h4><i class="bi bi-paperclip"></i> Attachments ({{ attachments|length }})</h4>
+                        <div class="attachments-grid">
+                            {% for attachment in attachments %}
+                            <div class="attachment-item" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                                <div class="attachment-icon">
+                                    {% if attachment.is_image %}
+                                        <i class="bi bi-image"></i>
+                                    {% elif attachment.is_video %}
+                                        <i class="bi bi-film"></i>
+                                    {% elif attachment.is_audio %}
+                                        <i class="bi bi-music-note"></i>
+                                    {% elif attachment.is_document %}
+                                        <i class="bi bi-file-text"></i>
+                                    {% elif attachment.is_archive %}
+                                        <i class="bi bi-file-zip"></i>
+                                    {% elif attachment.is_code %}
+                                        <i class="bi bi-file-code"></i>
+                                    {% else %}
+                                        <i class="bi bi-file-earmark"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="attachment-info">
+                                    <span class="attachment-name">{{ attachment.original_filename }}</span>
+                                    <span class="attachment-size">{{ (attachment.file_size / 1024)|round(1) }} KB</span>
+                                </div>
+                                <div class="attachment-actions">
+                                    <a href="{{ url_for('routes.view_attachment', attachment_id=attachment.id) }}" 
+                                       class="btn-icon" target="_blank" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('routes.download_attachment', attachment_id=attachment.id) }}" 
+                                       class="btn-icon" title="Download">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="custom-alert-overlay" id="customAlertOverlay">
+        <div class="custom-alert" id="customAlert">
+            <span class="alert-icon" id="alertIcon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </span>
+            <h3 id="alertTitle">Alert</h3>
+            <p id="alertMessage">This is a custom alert message.</p>
+            <div class="alert-actions" id="alertActions">
+                <button class="btn-primary" id="alertConfirmBtn">Confirm</button>
+                <button class="btn-secondary" id="alertCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 50
+        });
+
+        let alertCallback = null;
+
+        function showCustomAlert(type, title, message, confirmText, cancelText, onConfirm) {
+            const overlay = document.getElementById('customAlertOverlay');
+            const icon = document.getElementById('alertIcon');
+            const titleEl = document.getElementById('alertTitle');
+            const messageEl = document.getElementById('alertMessage');
+            const confirmBtn = document.getElementById('alertConfirmBtn');
+            const cancelBtn = document.getElementById('alertCancelBtn');
+
+            const icons = {
+                success: '<i class="bi bi-check-circle-fill"></i>',
+                error: '<i class="bi bi-x-circle-fill"></i>',
+                warning: '<i class="bi bi-exclamation-triangle-fill"></i>',
+                info: '<i class="bi bi-info-circle-fill"></i>'
+            };
+
+            icon.className = 'alert-icon ' + type;
+            icon.innerHTML = icons[type] || icons.info;
+            titleEl.textContent = title || 'Alert';
+            messageEl.textContent = message || 'This is a custom alert message.';
+            confirmBtn.textContent = confirmText || 'Confirm';
+            cancelBtn.textContent = cancelText || 'Cancel';
+
+            if (onConfirm && typeof onConfirm === 'function') {
+                alertCallback = onConfirm;
+            } else {
+                alertCallback = null;
+            }
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCustomAlert() {
+            const overlay = document.getElementById('customAlertOverlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            alertCallback = null;
+        }
+
+        document.getElementById('alertConfirmBtn').addEventListener('click', function() {
+            if (alertCallback) {
+                alertCallback();
+            }
+            closeCustomAlert();
+        });
+
+        document.getElementById('alertCancelBtn').addEventListener('click', function() {
+            closeCustomAlert();
+        });
+
+        document.getElementById('customAlertOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCustomAlert();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCustomAlert();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', currentTheme);
+                updateThemeIcon(toggle, currentTheme);
+                
+                toggle.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                    updateThemeIcon(this, next);
+                });
+            }
+
+            function updateThemeIcon(button, theme) {
+                const icon = button.querySelector('i');
+                if (theme === 'dark') {
+                    icon.className = 'bi bi-sun';
+                } else {
+                    icon.className = 'bi bi-moon';
+                }
+            }
+
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(msg) {
+                const type = msg.dataset.type || 'info';
+                const title = msg.dataset.title || '';
+                const message = msg.textContent.trim();
+                if (message) {
+                    showToast(message, title, type);
+                }
+                msg.remove();
+            });
+        });
+
+        function showToast(message, title, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `notification-toast ${type}`;
+            
+            const icons = {
+                success: 'bi-check-circle',
+                error: 'bi-x-circle',
+                warning: 'bi-exclamation-triangle',
+                info: 'bi-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="bi ${icons[type] || icons.success}"></i>
+                <div style="flex:1;">
+                    ${title ? `<strong>${title}</strong><br>` : ''}
+                    <span>${message}</span>
+                </div>
+                <button class="dismiss-btn">&times;</button>
+                <div class="progress-bar"></div>
+            `;
+            
+            container.appendChild(toast);
+            
+            const dismissBtn = toast.querySelector('.dismiss-btn');
+            dismissBtn.addEventListener('click', function() {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

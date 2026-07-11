@@ -1,0 +1,986 @@
+{% extends "base.html" %}
+{% block title %}Profile - TransferX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<style>
+    .modal-content .modal-description,
+    .modal-content .setup-info p,
+    .modal-content .verify-totp p,
+    .modal-content .manual-secret label,
+    .modal-content .modal-body p,
+    .modal-content .modal-body .text-warning {
+        color: #ffffff !important;
+    }
+    
+    .modal-content .method-card span,
+    .modal-content .method-card small {
+        color: #ffffff !important;
+    }
+    
+    .modal-content .method-card small {
+        opacity: 0.8;
+    }
+    
+    .modal-content .secret-display code {
+        color: #ffffff !important;
+    }
+    
+    .modal-content .modal-header h3 {
+        color: #ffffff !important;
+    }
+    
+    .modal-content .modal-close {
+        color: #ffffff !important;
+    }
+    
+    .modal-content .modal-close:hover {
+        color: #e2e8f0 !important;
+    }
+
+    /* QR Code container with download button */
+    .qr-container {
+        text-align: center;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    
+    .qr-container .qr-wrapper {
+        display: inline-block;
+        position: relative;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .qr-container img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+    }
+    
+    .qr-download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .qr-download-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+    }
+    
+    .qr-download-btn i {
+        font-size: 1rem;
+    }
+
+    /* Mobile responsive styles for 2FA modal */
+    @media (max-width: 640px) {
+        .modal {
+            padding: 0.5rem;
+            align-items: flex-end;
+        }
+        
+        .modal-content {
+            max-width: 100%;
+            width: 100%;
+            padding: 1.25rem;
+            max-height: 95vh;
+            border-radius: 16px 16px 0 0;
+            margin: 0;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-content .method-options {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        
+        .modal-content .method-card {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+        }
+        
+        .modal-content .method-card i {
+            font-size: 1.5rem;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+        
+        .modal-content .method-card span {
+            flex: 1;
+        }
+        
+        .modal-content .method-card small {
+            display: block;
+            font-size: 0.75rem;
+        }
+        
+        .modal-content .otp-input-group {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .modal-content .otp-input-group input {
+            width: 100%;
+            max-width: 200px;
+            font-size: 1.25rem;
+            letter-spacing: 4px;
+            padding: 0.6rem 1rem;
+        }
+        
+        .modal-content .otp-input-group .btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .modal-content .qr-container img {
+            max-width: 150px;
+        }
+        
+        .modal-content .secret-display {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .modal-content .secret-display code {
+            font-size: 0.85rem;
+            word-break: break-all;
+            text-align: center;
+        }
+        
+        .modal-content .modal-header {
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-content .modal-header h3 {
+            font-size: 1.1rem;
+        }
+        
+        .modal-content .setup-info {
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .modal-content .modal-footer {
+            flex-direction: column-reverse;
+            gap: 0.5rem;
+        }
+        
+        .modal-content .modal-footer .btn-secondary,
+        .modal-content .modal-footer .btn-primary,
+        .modal-content .modal-footer .btn-danger {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .modal-content .two-factor-actions {
+            flex-direction: column;
+        }
+        
+        .modal-content .two-factor-actions .btn-primary,
+        .modal-content .two-factor-actions .btn-danger {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .modal-content .verify-totp .otp-input-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .modal-content .verify-totp .otp-input-group input {
+            max-width: 100%;
+            width: 100%;
+        }
+        
+        .modal-content .verify-totp .otp-input-group .btn-primary {
+            width: 100%;
+        }
+        
+        .qr-container .qr-wrapper {
+            padding: 0.35rem;
+        }
+        
+        .qr-container img {
+            max-width: 140px;
+        }
+        
+        .qr-download-btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .modal-content {
+            padding: 1rem;
+        }
+        
+        .modal-content .method-card {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+        
+        .modal-content .method-card i {
+            font-size: 1.25rem;
+        }
+        
+        .modal-content .otp-input-group input {
+            font-size: 1rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .modal-content .modal-header h3 {
+            font-size: 1rem;
+        }
+        
+        .qr-container img {
+            max-width: 120px;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-content .two-factor-status {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .modal-content .status-item {
+        flex-wrap: wrap;
+    }
+    
+    @media (max-width: 480px) {
+        .two-factor-section {
+            padding: 1rem !important;
+        }
+        
+        .two-factor-status {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .two-factor-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .two-factor-actions .btn-primary,
+        .two-factor-actions .btn-danger {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .modal-content .btn-primary,
+    .modal-content .btn-secondary,
+    .modal-content .btn-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        text-decoration: none;
+    }
+
+    .modal-content .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+    }
+
+    .modal-content .btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .modal-content .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .modal-content .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-content .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-content .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .modal-content .btn-danger:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .modal-content .btn-danger:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .modal-content .modal-footer {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 640px) {
+        .modal-content .modal-footer {
+            flex-direction: column-reverse;
+        }
+        
+        .modal-content .modal-footer .btn-secondary,
+        .modal-content .modal-footer .btn-primary,
+        .modal-content .modal-footer .btn-danger {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Loading spinner for QR code */
+    .qr-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.5rem;
+    }
+    
+    .qr-loading .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    .qr-loading p {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-grid">
+        <div class="profile-card glass-card" data-aos="fade-right">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h2>{{ current_user.username }}</h2>
+                <p>{{ current_user.email }}</p>
+                <span class="profile-status {% if current_user.email_verified %}verified{% else %}unverified{% endif %}">
+                    <i class="bi bi-{% if current_user.email_verified %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {% if current_user.email_verified %}Verified{% else %}Unverified{% endif %}
+                </span>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ current_user.sent_emails|length }}</span>
+                    <span class="stat-label">Emails Sent</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ "%.1f"|format(current_user.get_storage_usage_percentage()) }}%</span>
+                    <span class="stat-label">Storage Used</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ current_user.created_at.strftime('%b %Y') }}</span>
+                    <span class="stat-label">Member Since</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-card glass-card" data-aos="fade-left">
+            <h3><i class="bi bi-gear"></i> Account Settings</h3>
+            
+            <form method="POST" action="{{ url_for('routes.profile') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" 
+                           value="{{ current_user.full_name or '' }}" 
+                           placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" value="{{ current_user.username }}" disabled>
+                    <small>Username cannot be changed</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" value="{{ current_user.email }}" disabled>
+                    <small>Email cannot be changed</small>
+                </div>
+                
+                <hr>
+                
+                <h4><i class="bi bi-lock"></i> Change Password</h4>
+                
+                <div class="form-group">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" 
+                           placeholder="Enter current password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" 
+                           placeholder="Enter new password">
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-level" data-strength="0"></div>
+                        </div>
+                        <span class="strength-text">Weak</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" 
+                           placeholder="Confirm new password">
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="two-factor-section glass-card" data-aos="fade-up">
+        <h3><i class="bi bi-shield-lock"></i> Two-Factor Authentication</h3>
+        
+        <div class="two-factor-status">
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span class="status-value {% if current_user.two_factor_enabled %}enabled{% else %}disabled{% endif %}">
+                    {% if current_user.two_factor_enabled %}
+                        <i class="bi bi-check-circle-fill"></i> Enabled
+                    {% else %}
+                        <i class="bi bi-x-circle-fill"></i> Disabled
+                    {% endif %}
+                </span>
+            </div>
+            {% if current_user.two_factor_enabled %}
+            <div class="status-item">
+                <span class="status-label">Method:</span>
+                <span class="status-value">
+                    {% if current_user.two_factor_method == 'email' %}
+                        <i class="bi bi-envelope"></i> Email OTP
+                    {% elif current_user.two_factor_method == 'totp' %}
+                        <i class="bi bi-phone"></i> Google Authenticator
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="two-factor-actions">
+            {% if current_user.two_factor_enabled %}
+                <button class="btn-danger" id="disable2faBtn">
+                    <i class="bi bi-shield-slash"></i> Disable 2FA
+                </button>
+            {% else %}
+                <button class="btn-primary" id="enable2faBtn">
+                    <i class="bi bi-shield-plus"></i> Enable 2FA
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="enable2faModal">
+    <div class="modal-content glass-card">
+        <div class="modal-header">
+            <h3><i class="bi bi-shield-lock"></i> Enable Two-Factor Authentication</h3>
+            <button class="modal-close" onclick="closeEnable2FAModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="methodSelection">
+                <p class="modal-description">Choose your preferred authentication method:</p>
+                <div class="method-options">
+                    <label class="method-option">
+                        <input type="radio" name="2fa_method" value="email" checked>
+                        <div class="method-card">
+                            <i class="bi bi-envelope"></i>
+                            <span>Email OTP</span>
+                            <small>Receive a 6-digit code via email</small>
+                        </div>
+                    </label>
+                    <label class="method-option">
+                        <input type="radio" name="2fa_method" value="totp">
+                        <div class="method-card">
+                            <i class="bi bi-phone"></i>
+                            <span>Google Authenticator</span>
+                            <small>Use an authenticator app</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="emailSetup" class="setup-section" style="display:none;">
+                <div class="setup-info">
+                    <i class="bi bi-info-circle"></i>
+                    <p>Email OTP will be sent to your registered email (<strong>{{ current_user.email }}</strong>) whenever you login.</p>
+                </div>
+                <button class="btn-primary" id="confirmEmailOtp" onclick="enableEmailOtp()">
+                    <i class="bi bi-check-circle"></i> Enable Email OTP
+                </button>
+            </div>
+            
+            <div id="totpSetup" class="setup-section" style="display:none;">
+                <div class="setup-info">
+                    <i class="bi bi-info-circle"></i>
+                    <p>Scan the QR code below using Google Authenticator, Microsoft Authenticator, or Authy.</p>
+                </div>
+                <div class="qr-container">
+                    <div id="qrCodeContainer">
+                        <div class="qr-loading">
+                            <div class="spinner"></div>
+                            <p>Generating QR code...</p>
+                        </div>
+                    </div>
+                    <div class="manual-secret">
+                        <label>Manual Secret Key:</label>
+                        <div class="secret-display">
+                            <code id="totpSecret"></code>
+                            <button class="btn-copy" onclick="copySecret()">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="verify-totp">
+                    <p>Enter the 6-digit code from your authenticator app:</p>
+                    <div class="otp-input-group">
+                        <input type="text" id="totpCode" maxlength="6" placeholder="000000" pattern="[0-9]*">
+                        <button class="btn-primary" id="verifyTotpBtn" onclick="verifyTotp()">
+                            <i class="bi bi-check-circle"></i> Verify & Enable
+                        </button>
+                    </div>
+                    <div class="otp-error" id="totpError" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeEnable2FAModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="disable2faModal">
+    <div class="modal-content glass-card">
+        <div class="modal-header">
+            <h3><i class="bi bi-exclamation-triangle"></i> Disable Two-Factor Authentication</h3>
+            <button class="modal-close" onclick="closeDisable2FAModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to disable Two-Factor Authentication?</p>
+            <p class="text-warning">This will make your account less secure.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeDisable2FAModal()">Cancel</button>
+            <button class="btn-danger" id="confirmDisable2fa" onclick="disable2fa()">
+                <i class="bi bi-shield-slash"></i> Disable
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script>
+    let totpSecret = null;
+    let isVerifying = false;
+    let currentQrDataUrl = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const enableBtn = document.getElementById('enable2faBtn');
+        if (enableBtn) {
+            enableBtn.addEventListener('click', openEnable2FAModal);
+        }
+
+        const disableBtn = document.getElementById('disable2faBtn');
+        if (disableBtn) {
+            disableBtn.addEventListener('click', openDisable2FAModal);
+        }
+
+        document.querySelectorAll('input[name="2fa_method"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                toggleSetupSections(this.value);
+            });
+        });
+
+        const totpInput = document.getElementById('totpCode');
+        if (totpInput) {
+            totpInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 6) {
+                    verifyTotp();
+                }
+            });
+            totpInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyTotp();
+                }
+            });
+        }
+    });
+
+    function openEnable2FAModal() {
+        document.getElementById('enable2faModal').classList.add('active');
+        document.getElementById('methodSelection').style.display = 'block';
+        document.getElementById('emailSetup').style.display = 'none';
+        document.getElementById('totpSetup').style.display = 'none';
+        document.querySelector('input[name="2fa_method"][value="email"]').checked = true;
+        currentQrDataUrl = null;
+    }
+
+    function closeEnable2FAModal() {
+        document.getElementById('enable2faModal').classList.remove('active');
+        resetTotpSetup();
+    }
+
+    function openDisable2FAModal() {
+        document.getElementById('disable2faModal').classList.add('active');
+    }
+
+    function closeDisable2FAModal() {
+        document.getElementById('disable2faModal').classList.remove('active');
+    }
+
+    function toggleSetupSections(method) {
+        document.getElementById('emailSetup').style.display = method === 'email' ? 'block' : 'none';
+        document.getElementById('totpSetup').style.display = method === 'totp' ? 'block' : 'none';
+        
+        if (method === 'totp' && !totpSecret) {
+            generateTotpSecret();
+        }
+    }
+
+    function enableEmailOtp() {
+        const button = document.getElementById('confirmEmailOtp');
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass"></i> Enabling...';
+
+        fetch('{{ url_for("auth.enable_2fa") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.csrfToken
+            },
+            body: JSON.stringify({ method: 'email' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', data.error);
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-check-circle"></i> Enable Email OTP';
+            }
+        })
+        .catch(function() {
+            showAlert('error', 'An error occurred. Please try again.');
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-check-circle"></i> Enable Email OTP';
+        });
+    }
+
+    function generateTotpSecret() {
+        const container = document.getElementById('qrCodeContainer');
+        container.innerHTML = `
+            <div class="qr-loading">
+                <div class="spinner"></div>
+                <p>Generating QR code...</p>
+            </div>
+        `;
+
+        fetch('{{ url_for("auth.setup_totp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            totpSecret = data.secret;
+            document.getElementById('totpSecret').textContent = data.secret;
+            currentQrDataUrl = 'data:image/png;base64,' + data.qr_code;
+            
+            const qrImg = document.createElement('img');
+            qrImg.src = currentQrDataUrl;
+            qrImg.alt = 'QR Code for Google Authenticator';
+            qrImg.id = 'qrCodeImage';
+            
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'qr-download-btn';
+            downloadBtn.innerHTML = '<i class="bi bi-download"></i> Download QR Code';
+            downloadBtn.onclick = downloadQrCode;
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'qr-wrapper';
+            wrapper.appendChild(qrImg);
+            
+            container.innerHTML = '';
+            container.appendChild(wrapper);
+            container.appendChild(downloadBtn);
+        })
+        .catch(function() {
+            container.innerHTML = '<p class="text-error">Failed to generate QR code. Please try again.</p>';
+        });
+    }
+
+    function downloadQrCode() {
+        if (!currentQrDataUrl) {
+            showAlert('error', 'No QR code available to download.');
+            return;
+        }
+        
+        const link = document.createElement('a');
+        link.download = 'transferx_2fa_qr.png';
+        link.href = currentQrDataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showAlert('success', 'QR code downloaded successfully!');
+    }
+
+    function resetTotpSetup() {
+        totpSecret = null;
+        currentQrDataUrl = null;
+        document.getElementById('totpSecret').textContent = '';
+        document.getElementById('totpCode').value = '';
+        document.getElementById('totpError').style.display = 'none';
+        document.getElementById('qrCodeContainer').innerHTML = `
+            <div class="qr-loading">
+                <div class="spinner"></div>
+                <p>Generating QR code...</p>
+            </div>
+        `;
+    }
+
+    function copySecret() {
+        const secret = document.getElementById('totpSecret').textContent;
+        if (!secret) {
+            showAlert('error', 'No secret key available.');
+            return;
+        }
+        
+        navigator.clipboard.writeText(secret).then(function() {
+            showAlert('success', 'Secret copied to clipboard!');
+        }).catch(function() {
+            const textarea = document.createElement('textarea');
+            textarea.value = secret;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showAlert('success', 'Secret copied to clipboard!');
+        });
+    }
+
+    function verifyTotp() {
+        if (isVerifying) return;
+        
+        const code = document.getElementById('totpCode').value.trim();
+        const errorEl = document.getElementById('totpError');
+        
+        if (code.length !== 6) {
+            errorEl.textContent = 'Please enter a valid 6-digit code.';
+            errorEl.style.display = 'block';
+            return;
+        }
+        
+        isVerifying = true;
+        const button = document.getElementById('verifyTotpBtn');
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass"></i> Verifying...';
+        errorEl.style.display = 'none';
+
+        fetch('{{ url_for("auth.verify_totp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.csrfToken
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                enableTotp();
+            } else {
+                errorEl.textContent = data.error || 'Invalid verification code. Please try again.';
+                errorEl.style.display = 'block';
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-check-circle"></i> Verify & Enable';
+                isVerifying = false;
+            }
+        })
+        .catch(function() {
+            errorEl.textContent = 'An error occurred. Please try again.';
+            errorEl.style.display = 'block';
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-check-circle"></i> Verify & Enable';
+            isVerifying = false;
+        });
+    }
+
+    function enableTotp() {
+        const button = document.getElementById('verifyTotpBtn');
+        button.innerHTML = '<i class="bi bi-hourglass"></i> Enabling...';
+
+        fetch('{{ url_for("auth.enable_2fa") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.csrfToken
+            },
+            body: JSON.stringify({ 
+                method: 'totp',
+                code: document.getElementById('totpCode').value.trim()
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', data.error);
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-check-circle"></i> Verify & Enable';
+                isVerifying = false;
+            }
+        })
+        .catch(function() {
+            showAlert('error', 'An error occurred. Please try again.');
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-check-circle"></i> Verify & Enable';
+            isVerifying = false;
+        });
+    }
+
+    function disable2fa() {
+        const button = document.getElementById('confirmDisable2fa');
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass"></i> Disabling...';
+
+        fetch('{{ url_for("auth.disable_2fa") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', data.error);
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-shield-slash"></i> Disable';
+            }
+        })
+        .catch(function() {
+            showAlert('error', 'An error occurred. Please try again.');
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-shield-slash"></i> Disable';
+        });
+    }
+
+    function showAlert(type, message) {
+        const existing = document.querySelector('.alert-floating');
+        if (existing) existing.remove();
+        
+        const alert = document.createElement('div');
+        alert.className = `alert-floating alert-${type}`;
+        alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+        document.body.appendChild(alert);
+        
+        setTimeout(function() {
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    }
+
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('enable2faModal');
+        if (e.target === modal) {
+            closeEnable2FAModal();
+        }
+        const disableModal = document.getElementById('disable2faModal');
+        if (e.target === disableModal) {
+            closeDisable2FAModal();
+        }
+    });
+</script>
+{% endblock %}
