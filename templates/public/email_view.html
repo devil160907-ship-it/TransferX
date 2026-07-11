@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ email.subject or 'Email' }} - TransferX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #4F8CFF;
+            --primary-dark: #3A7BD5;
+            --gradient-start: #4F8CFF;
+            --gradient-end: #6C63FF;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(79, 140, 255, 0.15);
+            --text-primary: #1A2332;
+            --text-secondary: #4A5568;
+            --text-light: #A0AEC0;
+            --bg-primary: #F0F7FF;
+            --bg-secondary: #E8F0FE;
+            --success: #48BB78;
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F0F7FF 0%, #E8F0FE 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: var(--glass-bg);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(79, 140, 255, 0.2);
+        }
+
+        .public-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(79, 140, 255, 0.1);
+            color: var(--primary);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .public-badge i {
+            font-size: 1rem;
+        }
+
+        .email-header {
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-subject {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .email-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            font-size: 0.9rem;
+        }
+
+        .email-meta .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .email-meta .meta-item i {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .email-body {
+            padding: 1rem 0;
+            min-height: 150px;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        .email-body p {
+            margin-bottom: 1rem;
+        }
+
+        .email-body ul,
+        .email-body ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .email-body blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        .email-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .email-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .email-body table td,
+        .email-body table th {
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem;
+        }
+
+        .email-body table th {
+            background: var(--glass-bg);
+            font-weight: 600;
+        }
+
+        .email-body a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .email-body a:hover {
+            text-decoration: underline;
+        }
+
+        .email-attachments {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .email-attachments h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .email-attachments h4 i {
+            margin-right: 0.5rem;
+        }
+
+        .attachments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .attachment-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(79, 140, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .attachment-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .attachment-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .attachment-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attachment-size {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .attachment-actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .print-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .print-btn:hover {
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .email-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .image-preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .image-preview-overlay.active {
+            display: flex;
+        }
+
+        .image-preview-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-preview-overlay .close-preview {
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            background: none;
+            border: none;
+        }
+
+        .image-preview-overlay .close-preview:hover {
+            transform: scale(1.2);
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .glass-nav {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .nav-links {
+                gap: 0.5rem;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .glass-card {
+                padding: 1.5rem;
+            }
+
+            .email-subject {
+                font-size: 1.25rem;
+            }
+
+            .email-meta {
+                gap: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .attachments-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links {
+                gap: 0.75rem;
+            }
+
+            .image-preview-overlay .close-preview {
+                top: 0.5rem;
+                right: 1rem;
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glass-nav {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .nav-brand {
+                font-size: 1.2rem;
+            }
+
+            .nav-brand i {
+                font-size: 1.6rem;
+            }
+
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .glass-card {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            .email-subject {
+                font-size: 1.1rem;
+            }
+
+            .public-badge {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.75rem;
+            }
+
+            .attachment-item {
+                padding: 0.5rem;
+            }
+        }
+
+        @media print {
+            .glass-nav {
+                display: none !important;
+            }
+
+            .footer {
+                display: none !important;
+            }
+
+            .print-btn {
+                display: none !important;
+            }
+
+            .email-actions {
+                display: none !important;
+            }
+
+            .public-badge {
+                display: none !important;
+            }
+
+            .glass-card {
+                box-shadow: none !important;
+                background: white !important;
+                padding: 1rem !important;
+            }
+
+            .email-body {
+                color: black !important;
+            }
+
+            .attachment-actions {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+            }
+
+            .attachment-item {
+                background: #f5f5f5 !important;
+                border: 1px solid #ddd !important;
+            }
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f1724;
+            --bg-secondary: #1a2332;
+            --text-primary: #e8f0fe;
+            --text-secondary: #a0aec0;
+            --text-light: #718096;
+            --glass-bg: rgba(26, 35, 50, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
+        }
+
+        [data-theme="dark"] .glass-nav {
+            background: rgba(26, 35, 50, 0.8);
+        }
+
+        [data-theme="dark"] .glass-card {
+            background: rgba(26, 35, 50, 0.5);
+        }
+
+        [data-theme="dark"] .attachment-item {
+            background: rgba(26, 35, 50, 0.3);
+        }
+
+        [data-theme="dark"] .attachment-icon {
+            background: rgba(79, 140, 255, 0.15);
+        }
+
+        [data-theme="dark"] .email-body table td,
+        [data-theme="dark"] .email-body table th {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .email-body table th {
+            background: rgba(26, 35, 50, 0.5);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f1724;
+                --bg-secondary: #1a2332;
+                --text-primary: #e8f0fe;
+                --text-secondary: #a0aec0;
+                --text-light: #718096;
+                --glass-bg: rgba(26, 35, 50, 0.7);
+                --glass-border: rgba(255, 255, 255, 0.08);
+                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+
+            body {
+                background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
+            }
+
+            .glass-nav {
+                background: rgba(26, 35, 50, 0.8);
+            }
+
+            .glass-card {
+                background: rgba(26, 35, 50, 0.5);
+            }
+
+            .attachment-item {
+                background: rgba(26, 35, 50, 0.3);
+            }
+
+            .attachment-icon {
+                background: rgba(79, 140, 255, 0.15);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="glass-nav">
+            <a href="{{ url_for('routes.home') }}" class="nav-brand">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <span>TransferX</span>
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('routes.home') }}" class="nav-link">
+                    <i class="bi bi-house"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('routes.about') }}" class="nav-link">
+                    <i class="bi bi-info-circle"></i>
+                    <span>About</span>
+                </a>
+                <a href="{{ url_for('routes.contact') }}" class="nav-link">
+                    <i class="bi bi-envelope"></i>
+                    <span>Contact</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="glass-card">
+                <div class="public-badge">
+                    <i class="bi bi-globe"></i>
+                    Public Email View
+                </div>
+
+                <div class="email-header">
+                    <h2 class="email-subject">{{ email.subject or 'No Subject' }}</h2>
+                    
+                    <div class="email-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-person"></i>
+                            <span>From: {{ sender.username if sender else 'Unknown' }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-envelope"></i>
+                            <span>To: {{ email.recipient }}</span>
+                        </div>
+                        {% if email.cc %}
+                        <div class="meta-item">
+                            <i class="bi bi-envelope-plus"></i>
+                            <span>CC: {{ email.cc }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ email.sent_at.strftime('%B %d, %Y at %H:%M') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="email-body">
+                    {% if email.body_html %}
+                        {{ email.body_html|safe }}
+                    {% else %}
+                        {{ email.body|replace('\n', '<br>')|safe }}
+                    {% endif %}
+                </div>
+
+                <div class="email-actions">
+                    <button class="print-btn" onclick="window.print()">
+                        <i class="bi bi-printer"></i>
+                        Print
+                    </button>
+                    <button class="print-btn" onclick="copyEmailAddress()">
+                        <i class="bi bi-clipboard"></i>
+                        Copy Email
+                    </button>
+                </div>
+
+                {% if attachments %}
+                <div class="email-attachments">
+                    <h4><i class="bi bi-paperclip"></i> Attachments ({{ attachments|length }})</h4>
+                    <div class="attachments-grid">
+                        {% for attachment in attachments %}
+                        <div class="attachment-item" data-is-image="{{ attachment.is_image|lower }}" onclick="openAttachment(this)">
+                            <div class="attachment-icon">
+                                {% if attachment.is_image %}
+                                    <i class="bi bi-image"></i>
+                                {% elif attachment.is_video %}
+                                    <i class="bi bi-film"></i>
+                                {% elif attachment.is_audio %}
+                                    <i class="bi bi-music-note"></i>
+                                {% elif attachment.is_document %}
+                                    <i class="bi bi-file-text"></i>
+                                {% elif attachment.is_archive %}
+                                    <i class="bi bi-file-zip"></i>
+                                {% elif attachment.is_code %}
+                                    <i class="bi bi-file-code"></i>
+                                {% else %}
+                                    <i class="bi bi-file-earmark"></i>
+                                {% endif %}
+                            </div>
+                            <div class="attachment-info">
+                                <span class="attachment-name">{{ attachment.original_filename }}</span>
+                                <span class="attachment-size">{{ (attachment.file_size / 1024)|round(1) }} KB</span>
+                            </div>
+                            <div class="attachment-actions">
+                                {% if attachment.is_image %}
+                                <a href="{{ url_for('routes.public_view_attachment', attachment_id=attachment.id) }}" 
+                                   class="btn-icon" target="_blank" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('routes.public_download_attachment', attachment_id=attachment.id) }}" 
+                                   class="btn-icon" title="Download">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light);">
+                        <i class="bi bi-info-circle"></i> 
+                        Click on an attachment to view or download it.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="footer">
+                <p>&copy; 2026 TransferX. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="{{ url_for('routes.home') }}">Home</a>
+                    <a href="{{ url_for('routes.about') }}">About</a>
+                    <a href="{{ url_for('routes.contact') }}">Contact</a>
+                    <a href="{{ url_for('routes.privacy') }}">Privacy</a>
+                    <a href="{{ url_for('routes.terms') }}">Terms</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="image-preview-overlay" id="imagePreviewOverlay" onclick="closeImagePreview()">
+        <button class="close-preview" onclick="event.stopPropagation(); closeImagePreview();">&times;</button>
+        <img id="previewImage" src="" alt="Attachment preview">
+    </div>
+
+    <script>
+        function openAttachment(element) {
+            const isImage = element.dataset.isImage === 'true';
+            const downloadLink = element.querySelector('a[title="Download"]');
+            
+            if (isImage) {
+                const viewLink = element.querySelector('a[title="View"]');
+                if (viewLink) {
+                    const previewOverlay = document.getElementById('imagePreviewOverlay');
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = viewLink.href;
+                    previewOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    return;
+                }
+            }
+            
+            if (downloadLink) {
+                window.open(downloadLink.href, '_blank');
+            }
+        }
+
+        function closeImagePreview() {
+            const overlay = document.getElementById('imagePreviewOverlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            const previewImage = document.getElementById('previewImage');
+            previewImage.src = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImagePreview();
+            }
+        });
+
+        function copyEmailAddress() {
+            const fromElement = document.querySelector('.meta-item i.bi-person').parentElement;
+            if (fromElement) {
+                const emailText = fromElement.textContent.replace('From:', '').trim();
+                navigator.clipboard.writeText(emailText).then(function() {
+                    showToast('Email address copied to clipboard!', 'success');
+                }).catch(function() {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = emailText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('Email address copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.notification-toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast ' + type;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 0.75rem 1.5rem;
+                border-radius: 12px;
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                box-shadow: var(--glass-shadow);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                z-index: 9999;
+                animation: slideUp 0.3s ease;
+                font-size: 0.95rem;
+                max-width: 90%;
+            `;
+
+            const icons = {
+                success: 'bi-check-circle',
+                error: 'bi-x-circle',
+                warning: 'bi-exclamation-triangle',
+                info: 'bi-info-circle'
+            };
+
+            toast.innerHTML = `
+                <i class="bi ${icons[type] || icons.success}" style="color: var(--${type}, var(--primary));"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-light);">&times;</button>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(-50%) translateY(20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+            .notification-toast {
+                animation: slideUp 0.3s ease;
+            }
+            [data-theme="dark"] .notification-toast {
+                background: rgba(26, 35, 50, 0.95);
+            }
+        `;
+        document.head.appendChild(style);
+
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            if (e.matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('.email-body img');
+            images.forEach(function(img) {
+                if (!img.hasAttribute('loading')) {
+                    img.setAttribute('loading', 'lazy');
+                }
+                if (!img.hasAttribute('alt')) {
+                    img.setAttribute('alt', 'Email image');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
