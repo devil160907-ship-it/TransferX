@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #F0F7FF 0%, #E8F0FE 100%);
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(79,140,255,0.15);
+        }
+        .logo {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4F8CFF;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1A2332;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        p {
+            color: #4A5568;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4F8CFF, #6C63FF);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .code-box {
+            background: rgba(79,140,255,0.1);
+            border: 1px solid rgba(79,140,255,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.5rem;
+            color: #4F8CFF;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #A0AEC0;
+            font-size: 0.8rem;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">TransferX</div>
+            <h1>Verify Your Email Address</h1>
+            <p>Hello {{ username }},</p>
+            <p>Thank you for registering with TransferX. Please verify your email address by clicking the button below:</p>
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="btn">Verify Email</a>
+            </div>
+            <p style="font-size: 0.9rem; color: #A0AEC0;">If the button doesn't work, copy and paste this link into your browser:</p>
+            <div class="code-box">{{ verification_url }}</div>
+            <p style="font-size: 0.9rem; color: #A0AEC0; text-align: center;">This link will expire in 24 hours.</p>
+            <p style="font-size: 0.9rem; color: #A0AEC0; text-align: center;">If you didn't create an account with TransferX, please ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 TransferX. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

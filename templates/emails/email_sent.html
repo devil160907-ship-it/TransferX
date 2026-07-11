@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Email Received</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f8fc;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 45px 40px 35px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eef2f7;
+        }
+        .logo {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #4F8CFF;
+            margin-bottom: 28px;
+            letter-spacing: -0.5px;
+        }
+        .logo i {
+            margin-right: 10px;
+            color: #4F8CFF;
+        }
+        .logo span {
+            background: linear-gradient(135deg, #4F8CFF, #6C63FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .public-badge {
+            display: inline-block;
+            background: #eef4ff;
+            color: #4F8CFF;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid #dce7fa;
+            letter-spacing: 0.3px;
+        }
+        .public-badge i {
+            margin-right: 6px;
+            font-size: 0.7rem;
+        }
+        h1 {
+            color: #1A2332;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+        h1 i {
+            color: #4F8CFF;
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+        .greeting {
+            color: #4A5568;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .greeting strong {
+            color: #1A2332;
+        }
+        .message-preview {
+            background: #f8faff;
+            border-left: 4px solid #4F8CFF;
+            padding: 18px 22px;
+            margin: 24px 0 28px;
+            border-radius: 8px;
+            border: 1px solid #eef2f7;
+            border-left-width: 4px;
+        }
+        .message-preview .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8896a8;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .message-preview .subject {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1A2332;
+        }
+        .message-preview .meta {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .badge {
+            display: inline-block;
+            background: #eef4ff;
+            color: #4F8CFF;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .badge i {
+            margin-right: 4px;
+            font-size: 0.65rem;
+        }
+        .copy-badge {
+            display: inline-block;
+            background: #e8f5ee;
+            color: #38a169;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .copy-badge i {
+            margin-right: 4px;
+            font-size: 0.65rem;
+        }
+        .btn-group {
+            text-align: center;
+            margin: 28px 0 22px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #4F8CFF, #6C63FF);
+            color: #ffffff;
+            padding: 14px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            border: none;
+            box-shadow: 0 4px 14px rgba(79, 140, 255, 0.3);
+            letter-spacing: 0.2px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(79, 140, 255, 0.35);
+        }
+        .btn-primary i {
+            margin-right: 10px;
+            font-size: 0.95rem;
+        }
+        .info-text {
+            font-size: 0.9rem;
+            color: #8896a8;
+            text-align: center;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .info-text i {
+            margin-right: 6px;
+            color: #4F8CFF;
+            font-size: 0.8rem;
+        }
+        .info-text .highlight {
+            color: #4F8CFF;
+            font-weight: 500;
+        }
+        .security-note {
+            background: #f8faff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            margin-top: 24px;
+            border: 1px solid #eef2f7;
+        }
+        .security-note p {
+            font-size: 0.8rem;
+            color: #8896a8;
+            text-align: center;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .security-note i {
+            margin-right: 6px;
+            color: #4F8CFF;
+        }
+        .divider {
+            height: 1px;
+            background: #eef2f7;
+            margin: 30px 0 22px;
+        }
+        .footer {
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.78rem;
+            line-height: 1.8;
+        }
+        .footer a {
+            color: #4F8CFF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .footer-links {
+            margin-top: 6px;
+        }
+        .footer-links a {
+            margin: 0 3px;
+        }
+        .footer-links .dot {
+            color: #d0d8e0;
+            margin: 0 3px;
+        }
+        .footer .copyright {
+            color: #b8c4d0;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 12px;
+            }
+            .card {
+                padding: 28px 20px 24px;
+                border-radius: 16px;
+            }
+            .logo {
+                font-size: 1.8rem;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            .message-preview {
+                padding: 14px 16px;
+            }
+            .message-preview .subject {
+                font-size: 0.95rem;
+            }
+            .btn-primary {
+                display: block;
+                padding: 14px 20px;
+                font-size: 0.95rem;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .btn-group {
+                margin: 22px 0 18px;
+            }
+            .public-badge {
+                font-size: 0.7rem;
+                padding: 4px 14px;
+            }
+            .footer-links {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2px 6px;
+            }
+            .footer-links .dot {
+                display: none;
+            }
+            .footer-links a {
+                margin: 0 2px;
+            }
+        }
+        @media (max-width: 380px) {
+            .card {
+                padding: 20px 14px;
+            }
+            .logo {
+                font-size: 1.5rem;
+            }
+            h1 {
+                font-size: 1.1rem;
+            }
+            .btn-primary {
+                font-size: 0.85rem;
+                padding: 12px 16px;
+            }
+        }
+        /* Gmail/Outlook email client optimizations */
+        .ExternalClass, .ReadMsgBody {
+            width: 100%;
+            background-color: #f5f8fc;
+        }
+        .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td {
+            line-height: 1.6;
+        }
+        table td {
+            border-collapse: collapse;
+        }
+        /* Ensure links work in all email clients */
+        a[x-apple-data-detectors] {
+            color: #4F8CFF !important;
+            text-decoration: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <!-- Logo -->
+            <div class="logo">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>TransferX</span>
+            </div>
+            
+            <!-- Public Badge -->
+            <div style="text-align: center;">
+                <span class="public-badge">
+                    <i class="fas fa-globe"></i> Public View
+                </span>
+            </div>
+            
+            <!-- Header -->
+            <h1>
+                <i class="fas fa-envelope"></i>
+                New Email Received
+            </h1>
+            
+            <!-- Greeting -->
+            <p class="greeting">
+                You have received a new email from <strong>{{ sender_name }}</strong> via TransferX.
+            </p>
+            
+            <!-- Message Preview -->
+            <div class="message-preview">
+                <span class="label"><i class="fas fa-tag"></i> Subject</span>
+                <div class="subject">{{ email_subject }}</div>
+                <div class="meta">
+                    <span class="badge">
+                        <i class="fas fa-shield-alt"></i> Secure
+                    </span>
+                    {% if sender_email %}
+                    <span class="copy-badge">
+                        <i class="fas fa-copy"></i> Copy to Sender
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- View Button -->
+            <div class="btn-group">
+                <a href="{{ public_url }}" class="btn-primary" target="_blank">
+                    <i class="fas fa-eye"></i> View Email
+                </a>
+            </div>
+            
+            <!-- Info Text -->
+            <p class="info-text">
+                <i class="fas fa-lock"></i> 
+                This email is publicly accessible. <span class="highlight">No login required</span> to view.
+                {% if sender_email %}
+                <br><small style="font-size:0.8rem;"><i class="fas fa-envelope"></i> A copy has been sent to your email.</small>
+                {% endif %}
+            </p>
+            
+            <!-- Security Note -->
+            <div class="security-note">
+                <p>
+                    <i class="fas fa-shield-alt"></i>
+                    This email was sent securely through TransferX.
+                </p>
+            </div>
+            
+            <!-- Divider -->
+            <div class="divider"></div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-links">
+                    <a href="{{ base_url }}"><i class="fas fa-home"></i> Home</a>
+                    <span class="dot">&bull;</span>
+                    <a href="{{ base_url }}/about"><i class="fas fa-info-circle"></i> About</a>
+                    <span class="dot">&bull;</span>
+                    <a href="{{ base_url }}/contact"><i class="fas fa-envelope"></i> Contact</a>
+                    <span class="dot">&bull;</span>
+                    <a href="{{ base_url }}/privacy"><i class="fas fa-lock"></i> Privacy</a>
+                    <span class="dot">&bull;</span>
+                    <a href="{{ base_url }}/terms"><i class="fas fa-file-contract"></i> Terms</a>
+                </div>
+                <div class="copyright">
+                    &copy; 2026 TransferX. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
