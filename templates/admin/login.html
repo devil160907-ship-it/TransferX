@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Login - TransferX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="glass-card auth-card" data-aos="fade-up">
+        <div class="auth-header">
+            <i class="bi bi-cloud-arrow-up-fill logo-icon"></i>
+            <h1>Welcome Back</h1>
+            <p>Sign in to your TransferX account</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form" id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="username">
+                    <i class="bi bi-person"></i> Username
+                </label>
+                <input type="text" id="username" name="username" required autofocus
+                       placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="bi bi-lock"></i> Password
+                </label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" required
+                           placeholder="Enter your password">
+                    <button type="button" class="toggle-password" data-target="password">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember">
+                    <span>Remember me</span>
+                </label>
+                <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">
+                    Forgot password?
+                </a>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-block" id="loginBtn">
+                <i class="bi bi-box-arrow-in-right"></i> Sign In
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Sign Up</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
