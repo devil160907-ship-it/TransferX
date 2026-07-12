@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Verify Email - TransferX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="glass-card auth-card" data-aos="fade-up">
+        <div class="auth-header">
+            <i class="bi bi-envelope-check logo-icon"></i>
+            <h1>Verify Your Email</h1>
+            <p>We've sent a verification link to your email</p>
+        </div>
+        
+        <div class="verification-info">
+            <div class="info-card">
+                <i class="bi bi-info-circle"></i>
+                <p>Please check your inbox and click the verification link to activate your account.</p>
+            </div>
+            
+            <div class="resend-section">
+                <p>Didn't receive the email?</p>
+                <form method="POST" action="{{ url_for('auth.resend_verification') }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="email" value="{{ request.args.get('email', '') }}">
+                    <button type="submit" class="btn-secondary">
+                        <i class="bi bi-arrow-repeat"></i> Resend Verification
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="auth-footer">
+            <p><a href="{{ url_for('auth.login') }}"><i class="bi bi-arrow-left"></i> Back to Login</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
