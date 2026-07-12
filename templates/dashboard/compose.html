@@ -645,6 +645,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let progressInterval = null;
     let currentStep = 0;
 
+    // Function to get CSRF token from the form
+    function getCsrfToken() {
+        const tokenInput = composeForm.querySelector('input[name="csrf_token"]');
+        return tokenInput ? tokenInput.value : '';
+    }
+
     sendBtn.addEventListener('click', function(e) {
         e.preventDefault();
         
@@ -681,6 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sendingIcon.className = 'bi bi-send';
         sendingOverlay.classList.remove('sending-success');
         sendingProgressFill.style.width = '0%';
+        sendingProgressFill.style.background = 'linear-gradient(90deg, var(--gradient-start), var(--gradient-end))';
         currentStep = 0;
 
         // Start progress animation
@@ -695,21 +702,45 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 800);
 
-        // Submit the form via AJAX
+        // Create FormData from the form
         const formData = new FormData(composeForm);
         
-        fetch(composeForm.action, {
+        // Get the form action URL
+        const formAction = composeForm.getAttribute('action') || composeForm.action;
+        
+        // Submit the form via AJAX
+        fetch(formAction, {
             method: 'POST',
             body: formData,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
+                // Don't set Content-Type header - let the browser set it with the boundary for FormData
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            }
+            // If not JSON, it might be a redirect or HTML response
+            // Try to parse as JSON anyway
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    // If parsing fails, check if it's a redirect
+                    if (response.redirected) {
+                        return { success: true, redirect: response.url };
+                    }
+                    throw new Error('Unexpected response format');
+                }
+            });
+        })
         .then(data => {
             clearInterval(progressInterval);
             
-            if (data.success) {
+            if (data && data.success) {
                 // Show success
                 sendingProgressFill.style.width = '100%';
                 sendingProgressText.textContent = '✓ Email sent successfully!';
@@ -720,13 +751,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect after delay
                 setTimeout(() => {
-                    window.location.href = data.redirect || '/sent';
+                    const redirectUrl = data.redirect || '/sent';
+                    window.location.href = redirectUrl;
                 }, 1800);
             } else {
                 // Show error
+                const errorMsg = data && data.error ? data.error : 'Failed to send email';
                 sendingProgressFill.style.width = '100%';
                 sendingProgressFill.style.background = 'linear-gradient(90deg, #fc8181, #f56565)';
-                sendingProgressText.textContent = '✗ ' + (data.error || 'Failed to send email');
+                sendingProgressText.textContent = '✗ ' + errorMsg;
                 sendingTitle.textContent = 'Send Failed';
                 sendingSubtitle.textContent = 'Please try again or check your internet connection';
                 sendingIcon.className = 'bi bi-exclamation-circle-fill';
@@ -763,6 +796,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
         sendingProgressFill.style.background = 'linear-gradient(90deg, var(--gradient-start), var(--gradient-end))';
         sendingIcon.style.color = '';
+        // Reset progress
+        sendingProgressFill.style.width = '0%';
+        sendingProgressText.textContent = 'Preparing to send...';
+        currentStep = 0;
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
     }
 
     // Allow closing overlay on Escape key
@@ -771,7 +812,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only close if not in success state
             if (!sendingOverlay.classList.contains('sending-success')) {
                 resetSendButton();
-                clearInterval(progressInterval);
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
             }
         }
     });
@@ -781,6 +825,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (progressInterval) {
             clearInterval(progressInterval);
         }
+    });
+
+    // Handle form submission via Enter key on input fields
+    const formInputs = composeForm.querySelectorAll('input, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && this.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                // Find next input or submit
+                const inputs = Array.from(composeForm.querySelectorAll('input:not([disabled]), textarea:not([disabled])'));
+                const currentIndex = inputs.indexOf(this);
+                if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                }
+            }
+        });
     });
 });
 </script>
