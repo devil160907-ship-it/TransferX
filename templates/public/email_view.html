@@ -10,19 +10,24 @@
         :root {
             --primary: #4F8CFF;
             --primary-dark: #3A7BD5;
+            --primary-light: #7BABFF;
             --gradient-start: #4F8CFF;
             --gradient-end: #6C63FF;
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px rgba(79, 140, 255, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --glass-shadow: 0 8px 32px rgba(79, 140, 255, 0.12);
             --text-primary: #1A2332;
             --text-secondary: #4A5568;
-            --text-light: #A0AEC0;
-            --bg-primary: #F0F7FF;
-            --bg-secondary: #E8F0FE;
+            --text-light: #94A3B8;
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
             --success: #48BB78;
+            --error: #FC8181;
+            --warning: #F6AD55;
+            --info: #63B3ED;
             --border-radius: 20px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --nav-height: 70px;
         }
 
         * {
@@ -33,7 +38,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #F0F7FF 0%, #E8F0FE 100%);
+            background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             line-height: 1.6;
@@ -58,6 +63,7 @@
             top: 0;
             z-index: 1000;
             box-shadow: var(--glass-shadow);
+            min-height: var(--nav-height);
         }
 
         .nav-brand {
@@ -79,7 +85,7 @@
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
             align-items: center;
         }
 
@@ -93,10 +99,11 @@
             align-items: center;
             gap: 0.5rem;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
         .nav-link:hover {
-            background: var(--glass-bg);
+            background: rgba(79, 140, 255, 0.08);
             color: var(--primary);
             transform: translateY(-2px);
         }
@@ -110,26 +117,23 @@
         }
 
         .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-secondary);
             border: 1px solid var(--glass-border);
             border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: var(--glass-shadow);
+            padding: 2.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
             transition: var(--transition);
         }
 
         .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(79, 140, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(79, 140, 255, 0.08);
         }
 
         .public-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(79, 140, 255, 0.1);
+            background: rgba(79, 140, 255, 0.08);
             color: var(--primary);
             padding: 0.4rem 1rem;
             border-radius: 20px;
@@ -217,7 +221,7 @@
         }
 
         .email-body table th {
-            background: var(--glass-bg);
+            background: var(--bg-primary);
             font-weight: 600;
         }
 
@@ -230,26 +234,82 @@
             text-decoration: underline;
         }
 
+        .email-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 1rem;
+        }
+
+        .print-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .print-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 140, 255, 0.25);
+        }
+
+        /* ============================================
+           ATTACHMENTS - FULLY RESPONSIVE
+           ============================================ */
         .email-attachments {
             border-top: 1px solid var(--glass-border);
             padding-top: 1.5rem;
             margin-top: 1.5rem;
         }
 
+        .email-attachments .attachments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
         .email-attachments h4 {
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .email-attachments h4 i {
-            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .attachments-count {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            background: var(--bg-primary);
+            padding: 0.2rem 0.75rem;
+            border-radius: 20px;
         }
 
         .attachments-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 0.75rem;
         }
 
@@ -257,24 +317,26 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem;
-            background: var(--glass-bg);
-            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border-radius: 12px;
             border: 1px solid var(--glass-border);
             transition: var(--transition);
             cursor: pointer;
+            min-height: 60px;
         }
 
         .attachment-item:hover {
             transform: translateY(-2px);
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 4px 16px rgba(79, 140, 255, 0.1);
+            border-color: var(--primary);
         }
 
         .attachment-icon {
             width: 40px;
             height: 40px;
-            border-radius: 8px;
-            background: rgba(79, 140, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(79, 140, 255, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -282,7 +344,7 @@
         }
 
         .attachment-icon i {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             color: var(--primary);
         }
 
@@ -312,11 +374,11 @@
             flex-shrink: 0;
         }
 
-        .btn-icon {
-            background: var(--glass-bg);
+        .attachment-actions .btn-icon {
+            background: var(--bg-secondary);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
-            padding: 0.5rem;
+            padding: 0.4rem;
             cursor: pointer;
             transition: var(--transition);
             color: var(--text-secondary);
@@ -324,24 +386,129 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             font-size: 0.8rem;
         }
 
-        .btn-icon:hover {
+        .attachment-actions .btn-icon:hover {
             background: var(--primary);
             color: white;
-            transform: scale(1.1);
+            border-color: var(--primary);
+            transform: scale(1.05);
         }
 
+        .attachments-hint {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .attachments-hint i {
+            font-size: 1rem;
+        }
+
+        /* ============================================
+           IMAGE PREVIEW OVERLAY
+           ============================================ */
+        .image-preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .image-preview-overlay.active {
+            display: flex;
+        }
+
+        .image-preview-overlay .close-preview {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            background: none;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            opacity: 0.8;
+        }
+
+        .image-preview-overlay .close-preview:hover {
+            transform: scale(1.2) rotate(90deg);
+            opacity: 1;
+        }
+
+        .image-preview-overlay img {
+            max-width: 90%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .image-preview-overlay .image-info {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .image-preview-overlay .download-btn {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .image-preview-overlay .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(79, 140, 255, 0.4);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
         .footer {
             text-align: center;
-            padding: 2rem;
+            padding: 2rem 1rem;
             color: var(--text-light);
             font-size: 0.85rem;
             border-top: 1px solid var(--glass-border);
             margin-top: 2rem;
+            background: var(--bg-secondary);
         }
 
         .footer a {
@@ -361,77 +528,104 @@
             margin-top: 0.5rem;
         }
 
-        .print-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            font-size: 1.2rem;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .print-btn:hover {
-            color: var(--primary);
-            transform: scale(1.05);
-        }
-
-        .email-actions {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .image-preview-overlay {
+        /* ============================================
+           TOAST NOTIFICATION
+           ============================================ */
+        .notification-toast {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            cursor: pointer;
-        }
-
-        .image-preview-overlay.active {
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             display: flex;
-        }
-
-        .image-preview-overlay img {
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+            font-size: 0.95rem;
             max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
         }
 
-        .image-preview-overlay .close-preview {
-            position: absolute;
-            top: 1rem;
-            right: 2rem;
-            color: white;
-            font-size: 2.5rem;
-            cursor: pointer;
-            transition: var(--transition);
+        .notification-toast i {
+            font-size: 1.25rem;
+        }
+
+        .notification-toast .toast-close {
             background: none;
             border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0 0.25rem;
         }
 
-        .image-preview-overlay .close-preview:hover {
-            transform: scale(1.2);
-            color: var(--primary);
+        .notification-toast .toast-close:hover {
+            color: var(--text-primary);
         }
 
+        .notification-toast.success i {
+            color: var(--success);
+        }
+        .notification-toast.error i {
+            color: var(--error);
+        }
+        .notification-toast.warning i {
+            color: var(--warning);
+        }
+        .notification-toast.info i {
+            color: var(--info);
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE BREAKPOINTS
+           ============================================ */
+
+        /* Tablets & small laptops */
+        @media (max-width: 992px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .glass-card {
+                padding: 2rem;
+            }
+
+            .email-subject {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Mobile landscape & tablets */
         @media (max-width: 768px) {
             .glass-nav {
                 padding: 0.75rem 1rem;
@@ -447,12 +641,18 @@
                 display: none;
             }
 
+            .nav-link {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
             .main-content {
                 padding: 1rem;
             }
 
             .glass-card {
                 padding: 1.5rem;
+                border-radius: 16px;
             }
 
             .email-subject {
@@ -462,34 +662,100 @@
             .email-meta {
                 gap: 0.5rem 1rem;
                 font-size: 0.8rem;
+                flex-direction: column;
+                align-items: flex-start;
             }
 
+            .email-actions {
+                gap: 0.5rem;
+            }
+
+            .print-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            /* ATTACHMENTS - Mobile Responsive */
             .attachments-grid {
                 grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .attachment-item {
+                padding: 0.6rem 0.8rem;
+                min-height: 52px;
+                border-radius: 10px;
+            }
+
+            .attachment-icon {
+                width: 34px;
+                height: 34px;
+            }
+
+            .attachment-icon i {
+                font-size: 1rem;
+            }
+
+            .attachment-name {
+                font-size: 0.8rem;
+            }
+
+            .attachment-size {
+                font-size: 0.7rem;
+            }
+
+            .attachment-actions .btn-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.7rem;
+            }
+
+            .email-attachments .attachments-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .attachments-hint {
+                font-size: 0.75rem;
             }
 
             .footer-links {
                 gap: 0.75rem;
+                font-size: 0.8rem;
             }
 
             .image-preview-overlay .close-preview {
-                top: 0.5rem;
+                top: 1rem;
                 right: 1rem;
                 font-size: 2rem;
             }
+
+            .image-preview-overlay .image-info {
+                font-size: 0.75rem;
+                padding: 0.3rem 1rem;
+                bottom: 1rem;
+            }
+
+            .image-preview-overlay .download-btn {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.4rem 1rem;
+                font-size: 0.8rem;
+            }
         }
 
+        /* Small mobile phones */
         @media (max-width: 480px) {
             .glass-nav {
                 padding: 0.5rem 0.75rem;
             }
 
             .nav-brand {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
 
             .nav-brand i {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
 
             .main-content {
@@ -502,19 +768,162 @@
             }
 
             .email-subject {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
 
             .public-badge {
-                font-size: 0.75rem;
-                padding: 0.3rem 0.75rem;
+                font-size: 0.7rem;
+                padding: 0.25rem 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .email-body {
+                font-size: 0.9rem;
+            }
+
+            .email-body blockquote {
+                padding-left: 0.75rem;
+            }
+
+            .email-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .print-btn {
+                justify-content: center;
+                width: 100%;
+            }
+
+            /* ATTACHMENTS - Small mobile */
+            .attachments-grid {
+                gap: 0.4rem;
             }
 
             .attachment-item {
-                padding: 0.5rem;
+                padding: 0.5rem 0.6rem;
+                min-height: 46px;
+                border-radius: 8px;
+                gap: 0.5rem;
+            }
+
+            .attachment-icon {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+            }
+
+            .attachment-icon i {
+                font-size: 0.9rem;
+            }
+
+            .attachment-name {
+                font-size: 0.75rem;
+            }
+
+            .attachment-size {
+                font-size: 0.65rem;
+            }
+
+            .attachment-actions .btn-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 0.6rem;
+                border-radius: 6px;
+            }
+
+            .email-attachments {
+                padding-top: 1rem;
+                margin-top: 1rem;
+            }
+
+            .email-attachments h4 {
+                font-size: 0.9rem;
+            }
+
+            .attachments-count {
+                font-size: 0.75rem;
+                padding: 0.15rem 0.6rem;
+            }
+
+            .attachments-hint {
+                font-size: 0.7rem;
+                margin-top: 0.75rem;
+            }
+
+            .footer {
+                padding: 1.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .footer-links {
+                gap: 0.5rem;
+            }
+
+            .image-preview-overlay .close-preview {
+                top: 0.75rem;
+                right: 0.75rem;
+                font-size: 1.75rem;
+            }
+
+            .image-preview-overlay .image-info {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.75rem;
+                bottom: 0.75rem;
+                max-width: 80%;
+            }
+
+            .image-preview-overlay .download-btn {
+                bottom: 0.75rem;
+                right: 0.75rem;
+                padding: 0.3rem 0.75rem;
+                font-size: 0.7rem;
             }
         }
 
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .glass-card {
+                padding: 0.75rem;
+            }
+
+            .email-subject {
+                font-size: 0.9rem;
+            }
+
+            .attachment-item {
+                padding: 0.4rem 0.5rem;
+                min-height: 40px;
+            }
+
+            .attachment-icon {
+                width: 26px;
+                height: 26px;
+            }
+
+            .attachment-icon i {
+                font-size: 0.8rem;
+            }
+
+            .attachment-name {
+                font-size: 0.7rem;
+            }
+
+            .attachment-actions .btn-icon {
+                width: 22px;
+                height: 22px;
+                font-size: 0.55rem;
+            }
+
+            .public-badge {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.6rem;
+            }
+        }
+
+        /* ============================================
+           PRINT STYLES
+           ============================================ */
         @media print {
             .glass-nav {
                 display: none !important;
@@ -540,6 +949,7 @@
                 box-shadow: none !important;
                 background: white !important;
                 padding: 1rem !important;
+                border: 1px solid #ddd !important;
             }
 
             .email-body {
@@ -557,79 +967,19 @@
             .attachment-item {
                 background: #f5f5f5 !important;
                 border: 1px solid #ddd !important;
-            }
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0f1724;
-            --bg-secondary: #1a2332;
-            --text-primary: #e8f0fe;
-            --text-secondary: #a0aec0;
-            --text-light: #718096;
-            --glass-bg: rgba(26, 35, 50, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        [data-theme="dark"] body {
-            background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
-        }
-
-        [data-theme="dark"] .glass-nav {
-            background: rgba(26, 35, 50, 0.8);
-        }
-
-        [data-theme="dark"] .glass-card {
-            background: rgba(26, 35, 50, 0.5);
-        }
-
-        [data-theme="dark"] .attachment-item {
-            background: rgba(26, 35, 50, 0.3);
-        }
-
-        [data-theme="dark"] .attachment-icon {
-            background: rgba(79, 140, 255, 0.15);
-        }
-
-        [data-theme="dark"] .email-body table td,
-        [data-theme="dark"] .email-body table th {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        [data-theme="dark"] .email-body table th {
-            background: rgba(26, 35, 50, 0.5);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-primary: #0f1724;
-                --bg-secondary: #1a2332;
-                --text-primary: #e8f0fe;
-                --text-secondary: #a0aec0;
-                --text-light: #718096;
-                --glass-bg: rgba(26, 35, 50, 0.7);
-                --glass-border: rgba(255, 255, 255, 0.08);
-                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                break-inside: avoid;
             }
 
-            body {
-                background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
+            .email-attachments {
+                break-inside: avoid;
             }
 
-            .glass-nav {
-                background: rgba(26, 35, 50, 0.8);
+            .image-preview-overlay {
+                display: none !important;
             }
 
-            .glass-card {
-                background: rgba(26, 35, 50, 0.5);
-            }
-
-            .attachment-item {
-                background: rgba(26, 35, 50, 0.3);
-            }
-
-            .attachment-icon {
-                background: rgba(79, 140, 255, 0.15);
+            .main-content {
+                padding: 0.5rem !important;
             }
         }
     </style>
@@ -710,7 +1060,14 @@
 
                 {% if attachments %}
                 <div class="email-attachments">
-                    <h4><i class="bi bi-paperclip"></i> Attachments ({{ attachments|length }})</h4>
+                    <div class="attachments-header">
+                        <h4>
+                            <i class="bi bi-paperclip"></i>
+                            Attachments
+                        </h4>
+                        <span class="attachments-count">{{ attachments|length }} file(s)</span>
+                    </div>
+                    
                     <div class="attachments-grid">
                         {% for attachment in attachments %}
                         <div class="attachment-item" data-is-image="{{ attachment.is_image|lower }}" onclick="openAttachment(this)">
@@ -738,22 +1095,23 @@
                             <div class="attachment-actions">
                                 {% if attachment.is_image %}
                                 <a href="{{ url_for('routes.public_view_attachment', attachment_id=attachment.id) }}" 
-                                   class="btn-icon" target="_blank" title="View">
+                                   class="btn-icon" target="_blank" title="View" onclick="event.stopPropagation();">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 {% endif %}
                                 <a href="{{ url_for('routes.public_download_attachment', attachment_id=attachment.id) }}" 
-                                   class="btn-icon" title="Download">
+                                   class="btn-icon" title="Download" onclick="event.stopPropagation();">
                                     <i class="bi bi-download"></i>
                                 </a>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light);">
-                        <i class="bi bi-info-circle"></i> 
+                    
+                    <div class="attachments-hint">
+                        <i class="bi bi-info-circle"></i>
                         Click on an attachment to view or download it.
-                    </p>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -771,12 +1129,20 @@
         </main>
     </div>
 
+    <!-- Image Preview Overlay -->
     <div class="image-preview-overlay" id="imagePreviewOverlay" onclick="closeImagePreview()">
         <button class="close-preview" onclick="event.stopPropagation(); closeImagePreview();">&times;</button>
         <img id="previewImage" src="" alt="Attachment preview">
+        <div class="image-info" id="imageInfo">Loading...</div>
+        <button class="download-btn" id="downloadBtn" onclick="event.stopPropagation(); downloadPreviewImage();">
+            <i class="bi bi-download"></i>
+            Download
+        </button>
     </div>
 
     <script>
+        let currentPreviewUrl = '';
+
         function openAttachment(element) {
             const isImage = element.dataset.isImage === 'true';
             const downloadLink = element.querySelector('a[title="Download"]');
@@ -786,7 +1152,12 @@
                 if (viewLink) {
                     const previewOverlay = document.getElementById('imagePreviewOverlay');
                     const previewImage = document.getElementById('previewImage');
-                    previewImage.src = viewLink.href;
+                    const imageInfo = document.getElementById('imageInfo');
+                    const fileName = element.querySelector('.attachment-name')?.textContent || 'Image';
+                    
+                    currentPreviewUrl = viewLink.href;
+                    previewImage.src = currentPreviewUrl;
+                    imageInfo.textContent = fileName;
                     previewOverlay.classList.add('active');
                     document.body.style.overflow = 'hidden';
                     return;
@@ -804,6 +1175,18 @@
             document.body.style.overflow = '';
             const previewImage = document.getElementById('previewImage');
             previewImage.src = '';
+            currentPreviewUrl = '';
+        }
+
+        function downloadPreviewImage() {
+            if (currentPreviewUrl) {
+                const link = document.createElement('a');
+                link.href = currentPreviewUrl;
+                link.download = 'image.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
 
         document.addEventListener('keydown', function(e) {
@@ -813,7 +1196,7 @@
         });
 
         function copyEmailAddress() {
-            const fromElement = document.querySelector('.meta-item i.bi-person').parentElement;
+            const fromElement = document.querySelector('.meta-item i.bi-person')?.parentElement;
             if (fromElement) {
                 const emailText = fromElement.textContent.replace('From:', '').trim();
                 navigator.clipboard.writeText(emailText).then(function() {
@@ -837,27 +1220,8 @@
             }
 
             const toast = document.createElement('div');
-            toast.className = 'notification-toast ' + type;
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 2rem;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 0.75rem 1.5rem;
-                border-radius: 12px;
-                background: var(--glass-bg);
-                backdrop-filter: blur(20px);
-                border: 1px solid var(--glass-border);
-                box-shadow: var(--glass-shadow);
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                z-index: 9999;
-                animation: slideUp 0.3s ease;
-                font-size: 0.95rem;
-                max-width: 90%;
-            `;
-
+            toast.className = `notification-toast ${type}`;
+            
             const icons = {
                 success: 'bi-check-circle',
                 error: 'bi-x-circle',
@@ -866,9 +1230,9 @@
             };
 
             toast.innerHTML = `
-                <i class="bi ${icons[type] || icons.success}" style="color: var(--${type}, var(--primary));"></i>
+                <i class="bi ${icons[type] || icons.success}"></i>
                 <span>${message}</span>
-                <button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-light);">&times;</button>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
             `;
 
             document.body.appendChild(toast);
@@ -887,39 +1251,7 @@
             }, 3000);
         }
 
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateX(-50%) translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
-                }
-            }
-            .notification-toast {
-                animation: slideUp 0.3s ease;
-            }
-            [data-theme="dark"] .notification-toast {
-                background: rgba(26, 35, 50, 0.95);
-            }
-        `;
-        document.head.appendChild(style);
-
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-            if (e.matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-        });
-
+        // Lazy load images in email body
         document.addEventListener('DOMContentLoaded', function() {
             const images = document.querySelectorAll('.email-body img');
             images.forEach(function(img) {
