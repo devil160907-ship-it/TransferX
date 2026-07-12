@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, csrf
 from models import User, SentEmail, Attachment
 from datetime import datetime, timedelta
 import os
@@ -227,6 +227,11 @@ def admin_emails():
 @admin_bp.route('/emails/<int:email_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_email(email_id):
+    try:
+        csrf.protect()
+    except:
+        return jsonify({'error': 'Invalid CSRF token'}), 400
+    
     if not current_user.is_admin:
         return jsonify({'error': 'Access denied'}), 403
     
