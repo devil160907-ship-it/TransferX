@@ -1,0 +1,183 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Activity Logs - TransferX{% endblock %}
+{% block page_title %}Activity Logs{% endblock %}
+{% block breadcrumb %}Activity Logs{% endblock %}
+
+{% block admin_content %}
+<div class="admin-toolbar">
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:0.9rem;color:var(--text-secondary);">Period:</label>
+        <select id="periodSelect" style="padding:0.5rem 1rem;border:1px solid var(--glass-border);border-radius:10px;background:var(--bg-primary);color:var(--text-primary);" onchange="loadActivity()">
+            <option value="7">Last 7 Days</option>
+            <option value="14" selected>Last 14 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="60">Last 60 Days</option>
+            <option value="90">Last 90 Days</option>
+        </select>
+        <button class="btn-secondary" onclick="loadActivity()" style="padding:0.5rem 1.25rem;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div class="admin-stats-grid">
+    <div class="admin-stat-card">
+        <div class="stat-icon primary"><i class="bi bi-envelope"></i></div>
+        <div class="stat-number" id="activityEmails">0</div>
+        <div class="stat-label">Emails Sent</div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon success"><i class="bi bi-person-plus"></i></div>
+        <div class="stat-number" id="activityUsers">0</div>
+        <div class="stat-label">New Users</div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon warning"><i class="bi bi-paperclip"></i></div>
+        <div class="stat-number" id="activityAttachments">0</div>
+        <div class="stat-label">Attachments Uploaded</div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="stat-icon info"><i class="bi bi-activity"></i></div>
+        <div class="stat-number" id="activityTotal">0</div>
+        <div class="stat-label">Total Activities</div>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <div class="table-header">
+        <h5><i class="bi bi-clock-history"></i> Activity Timeline</h5>
+        <span style="font-size:0.85rem;color:var(--text-light);" id="activityPeriod">Loading...</span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Activity</th>
+                    <th>Details</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody id="activityTableBody">
+                <tr>
+                    <td colspan="4" class="empty-state-admin">
+                        <div style="width:40px;height:40px;border:3px solid var(--glass-border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+                        <p style="color:var(--text-secondary);">Loading activity data...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-table-container" style="margin-top:1.5rem;">
+    <div class="table-header">
+        <h5><i class="bi bi-bar-chart"></i> Activity Summary</h5>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;" id="activitySummary">
+        <div style="text-align:center;padding:1rem;background:var(--glass-bg);border-radius:12px;border:1px solid var(--glass-border);">
+            <div style="font-size:2rem;color:var(--primary);" id="summaryEmails">0</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Emails</div>
+        </div>
+        <div style="text-align:center;padding:1rem;background:var(--glass-bg);border-radius:12px;border:1px solid var(--glass-border);">
+            <div style="font-size:2rem;color:var(--success);" id="summaryUsers">0</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">New Users</div>
+        </div>
+        <div style="text-align:center;padding:1rem;background:var(--glass-bg);border-radius:12px;border:1px solid var(--glass-border);">
+            <div style="font-size:2rem;color:var(--warning);" id="summaryAttachments">0</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Attachments</div>
+        </div>
+        <div style="text-align:center;padding:1rem;background:var(--glass-bg);border-radius:12px;border:1px solid var(--glass-border);">
+            <div style="font-size:2rem;color:var(--info);" id="summaryAvg">0/day</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Avg. Daily Activity</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activityData = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadActivity();
+        // Auto-refresh every 60 seconds
+        setInterval(loadActivity, 60000);
+    });
+
+    function loadActivity() {
+        const days = document.getElementById('periodSelect').value;
+        showLoading();
+
+        fetch(`/admin/activity-logs?days=${days}`)
+            .then(r => r.json())
+            .then(data => {
+                hideLoading();
+                document.getElementById('activityEmails').textContent = data.emails;
+                document.getElementById('activityUsers').textContent = data.new_users;
+                document.getElementById('activityAttachments').textContent = data.attachments || 0;
+                document.getElementById('activityTotal').textContent = data.total || (data.emails + data.new_users + (data.attachments || 0));
+                document.getElementById('activityPeriod').textContent = `Last ${data.days} days`;
+
+                // Summary
+                document.getElementById('summaryEmails').textContent = data.emails;
+                document.getElementById('summaryUsers').textContent = data.new_users;
+                document.getElementById('summaryAttachments').textContent = data.attachments || 0;
+                const total = data.emails + data.new_users + (data.attachments || 0);
+                document.getElementById('summaryAvg').textContent = `${(total / data.days).toFixed(1)}/day`;
+
+                // Build timeline
+                const tbody = document.getElementById('activityTableBody');
+                if (!data.timeline || data.timeline.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="empty-state-admin">
+                                <i class="bi bi-clock-history"></i>
+                                <h4>No Activity</h4>
+                                <p style="color:var(--text-light);">No activity recorded in this period.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                const typeIcons = {
+                    email: 'bi-envelope',
+                    user: 'bi-person-plus',
+                    attachment: 'bi-paperclip'
+                };
+
+                const typeColors = {
+                    email: 'var(--primary)',
+                    user: 'var(--success)',
+                    attachment: 'var(--warning)'
+                };
+
+                tbody.innerHTML = data.timeline.map(item => `
+                    <tr>
+                        <td style="font-size:0.85rem;color:var(--text-light);white-space:nowrap;">${new Date(item.date).toLocaleDateString()}</td>
+                        <td>
+                            <span style="display:inline-flex;align-items:center;gap:0.4rem;background:${typeColors[item.type]}15;color:${typeColors[item.type]};padding:0.2rem 0.7rem;border-radius:12px;font-size:0.8rem;">
+                                <i class="bi ${typeIcons[item.type] || 'bi-activity'}"></i>
+                                ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                            </span>
+                        </td>
+                        <td style="font-size:0.9rem;">${item.description}</td>
+                        <td style="font-size:0.85rem;color:var(--text-secondary);">${item.user || 'System'}</td>
+                    </tr>
+                `).join('');
+            })
+            .catch(() => {
+                hideLoading();
+                document.getElementById('activityTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="4" class="empty-state-admin">
+                            <i class="bi bi-exclamation-triangle" style="color:var(--error);"></i>
+                            <h4>Failed to Load</h4>
+                            <p style="color:var(--text-light);">Could not load activity data.</p>
+                        </td>
+                    </tr>
+                `;
+                showToast('Failed to load activity logs', 'error');
+            });
+    }
+</script>
+{% endblock %}  
