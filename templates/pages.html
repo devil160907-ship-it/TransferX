@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransferX - Secure File Transfer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F8CFF;
+            --gradient-start: #4F8CFF;
+            --gradient-end: #6C63FF;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --text-light: #8888aa;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+            --success: #48BB78;
+            --error: #FC8181;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f0f4ff;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .pages-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Navigation */
+        .glass-nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--glass-shadow);
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: var(--glass-bg);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: var(--glass-bg);
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 140, 255, 0.2);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 140, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            margin-bottom: 4rem;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, rgba(79, 140, 255, 0.05), rgba(108, 99, 255, 0.05));
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(79, 140, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions .btn-large {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 16px;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 3rem 0;
+        }
+
+        .features-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .features-section h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            text-align: center;
+            transition: var(--transition);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(79, 140, 255, 0.2);
+            border-color: var(--primary);
+        }
+
+        .feature-card i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 3rem 0;
+            margin-top: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(79, 140, 255, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 4rem 2rem;
+            margin-top: 3rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(79, 140, 255, 0.08), rgba(108, 99, 255, 0.08));
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(79, 140, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto 2rem;
+        }
+
+        /* About Page Styles */
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .about-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .about-content h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .about-content .about-hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-content .about-hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 1rem auto 0;
+        }
+
+        .about-content .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .about-content .about-grid .about-card {
+            padding: 2rem;
+            background: var(--glass-bg);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .about-content .about-grid .about-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .about-content .about-grid .about-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .about-content .about-grid .about-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .about-content .about-grid .about-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .about-content .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .about-content .about-features .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .about-content .about-features .feature-item i {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        .about-content .about-features .feature-item span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .about-content .about-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--glass-bg);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .about-content .about-stats .stat-item {
+            text-align: center;
+        }
+
+        .about-content .about-stats .stat-item .number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .about-content .about-stats .stat-item .label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Contact Page Styles */
+        .contact-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .contact-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .contact-content .contact-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-content h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .contact-content .contact-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .contact-content .contact-info .info-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .contact-content .contact-info .info-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .contact-content .contact-info .info-item i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .contact-content .contact-info .info-item h4 {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .contact-content .contact-info .info-item p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .contact-content .contact-form-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--glass-shadow);
+            margin-top: 2rem;
+        }
+
+        .contact-content .contact-form-container h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .contact-content .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-content .form-group label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-content .form-group label .required {
+            color: var(--error);
+        }
+
+        .contact-content .form-group input,
+        .contact-content .form-group textarea,
+        .contact-content .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .contact-content .form-group input:focus,
+        .contact-content .form-group textarea:focus,
+        .contact-content .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.1);
+        }
+
+        .contact-content .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .contact-content .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .contact-content .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .contact-content .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 140, 255, 0.3);
+        }
+
+        .contact-content .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .toast i {
+            font-size: 1.5rem;
+        }
+
+        .toast.success i {
+            color: var(--success);
+        }
+
+        .toast.error i {
+            color: var(--error);
+        }
+
+        .toast .toast-content {
+            flex: 1;
+        }
+
+        .toast .toast-content .toast-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .toast .toast-content .toast-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .toast .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0 0.25rem;
+        }
+
+        .toast .toast-close:hover {
+            color: var(--text-primary);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Privacy & Terms Page Styles */
+        .legal-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .legal-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .legal-content h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .legal-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .legal-content p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 0.75rem;
+        }
+
+        .legal-content ul {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-content .last-updated {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 3rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .footer .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        /* AOS Custom Overrides */
+        [data-aos] {
+            pointer-events: none;
+        }
+        [data-aos].aos-animate {
+            pointer-events: auto;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .glass-nav {
+                flex-wrap: wrap;
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                gap: 1rem;
+                margin-top: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-actions {
+                gap: 0.5rem;
+            }
+
+            .about-content .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-content .about-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-content .contact-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-content .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+
+            .hero-title {
+                font-size: 2.2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.05rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-actions .btn-large {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .cta-section {
+                padding: 2rem 1rem;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+
+            .about-content .about-features {
+                grid-template-columns: 1fr;
+            }
+
+            .about-content .about-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .contact-content .contact-info {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-content .contact-form-container {
+                padding: 1.5rem;
+            }
+
+            .footer .footer-links {
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+
+            .stat-number {
+                font-size: 1.8rem;
+            }
+
+            .features-section h2,
+            .cta-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .about-content .about-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .toast-container {
+                max-width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <a href="/" class="nav-brand">
+            <i class="bi bi-cloud-arrow-up-fill"></i>
+            <span>TransferX</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link {% if not page %}active{% endif %}">
+                <i class="bi bi-house"></i> Home
+            </a>
+            <a href="/about" class="nav-link {% if page == 'about' %}active{% endif %}">
+                <i class="bi bi-info-circle"></i> About
+            </a>
+            <a href="/contact" class="nav-link {% if page == 'contact' %}active{% endif %}">
+                <i class="bi bi-envelope"></i> Contact
+            </a>
+        </div>
+        <div class="nav-actions">
+            <a href="/auth/login" class="nav-link">
+                <i class="bi bi-box-arrow-in-right"></i> Sign In
+            </a>
+            <a href="/auth/register" class="btn-primary">
+                <i class="bi bi-person-plus"></i> Sign Up
+            </a>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="pages-container">
+        {% if page == 'about' %}
+        <!-- About Page -->
+        <div class="about-content" data-aos="fade-up">
+            <div class="about-hero" data-aos="fade-up" data-aos-delay="100">
+                <h2>About TransferX</h2>
+                <p>TransferX is a modern, secure file transfer platform designed to make sharing files and emails simple, fast, and safe.</p>
+            </div>
+
+            <div class="about-grid" data-aos="fade-up" data-aos-delay="200">
+                <div class="about-card">
+                    <i class="bi bi-shield-lock"></i>
+                    <h3>Secure & Private</h3>
+                    <p>All files are encrypted in transit and at rest. Your data is protected with industry-standard security measures.</p>
+                </div>
+                <div class="about-card">
+                    <i class="bi bi-lightning"></i>
+                    <h3>Fast & Reliable</h3>
+                    <p>Experience lightning-fast uploads and downloads with our optimized infrastructure. Transfer files in seconds.</p>
+                </div>
+                <div class="about-card">
+                    <i class="bi bi-palette"></i>
+                    <h3>Beautiful Interface</h3>
+                    <p>Modern Azure Glass design with light and dark modes. A premium experience that's a pleasure to use.</p>
+                </div>
+                <div class="about-card">
+                    <i class="bi bi-heart"></i>
+                    <h3>Built with Care</h3>
+                    <p>Developed with attention to detail and user experience. Regular updates and improvements based on user feedback.</p>
+                </div>
+            </div>
+
+            <div class="about-stats" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-item">
+                    <div class="number" id="aboutTotalFiles">0</div>
+                    <div class="label">Files Transferred</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number" id="aboutTotalUsers">0</div>
+                    <div class="label">Active Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">99.9%</div>
+                    <div class="label">Uptime</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">24/7</div>
+                    <div class="label">Support</div>
+                </div>
+            </div>
+
+            <h3 style="text-align:center;margin-top:2rem;color:var(--text-primary);">Key Features</h3>
+            <div class="about-features" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-item">
+                    <i class="bi bi-file-earmark"></i>
+                    <span>All File Types Supported</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span>Drag & Drop Uploads</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-play-circle"></i>
+                    <span>Media Preview Players</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-envelope"></i>
+                    <span>Email Integration</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-moon"></i>
+                    <span>Dark/Light Mode</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-mobile"></i>
+                    <span>Fully Responsive</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-search"></i>
+                    <span>Advanced Search</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-bell"></i>
+                    <span>Real-time Notifications</span>
+                </div>
+            </div>
+
+            <p data-aos="fade-up" style="margin-top:2rem;">Whether you're sharing important documents, sending large media files, or collaborating with your team, TransferX provides the security and convenience you need. Our platform supports all common file types including images, videos, audio, documents, archives, and code files.</p>
+            
+            <p data-aos="fade-up">With TransferX, you get secure transfers, rich media preview, smart organization, storage management, and instant notifications - all in one beautiful package.</p>
+        </div>
+
+        {% elif page == 'contact' %}
+        <!-- Contact Page -->
+        <div class="contact-content" data-aos="fade-up">
+            <h2>Get in Touch</h2>
+            <p class="contact-subtitle">Have questions or need support? We'd love to hear from you.</p>
+            
+            <div class="contact-info" data-aos="fade-up" data-aos-delay="100">
+                <div class="info-item">
+                    <i class="bi bi-envelope"></i>
+                    <h4>Email</h4>
+                    <p>support@transferx.com</p>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-clock"></i>
+                    <h4>Hours</h4>
+                    <p>24/7 Support</p>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-geo-alt"></i>
+                    <h4>Location</h4>
+                    <p>Global Service</p>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-chat"></i>
+                    <h4>Live Chat</h4>
+                    <p>Available 24/7</p>
+                </div>
+            </div>
+
+            <div class="contact-form-container" data-aos="fade-up" data-aos-delay="200">
+                <h3>Send Us a Message</h3>
+                <form id="contactForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contactName">Full Name <span class="required">*</span></label>
+                            <input type="text" id="contactName" name="name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactEmail">Email Address <span class="required">*</span></label>
+                            <input type="email" id="contactEmail" name="email" placeholder="Enter your email address" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSubject">Subject <span class="required">*</span></label>
+                        <select id="contactSubject" name="subject" required>
+                            <option value="">Select a subject</option>
+                            <option value="general">General Inquiry</option>
+                            <option value="support">Technical Support</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="bug">Bug Report</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessage">Message <span class="required">*</span></label>
+                        <textarea id="contactMessage" name="message" placeholder="Describe your issue or question in detail..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" id="contactSubmit">
+                        <i class="bi bi-send"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% elif page == 'privacy' %}
+        <!-- Privacy Policy Page -->
+        <div class="legal-content" data-aos="fade-up">
+            <h2>Privacy Policy</h2>
+            
+            <h3>1. Information We Collect</h3>
+            <p>TransferX collects information that you provide directly to us, including:</p>
+            <ul>
+                <li>Account information (username, email address, password)</li>
+                <li>Profile information (full name, preferences)</li>
+                <li>Files and content you upload or share</li>
+                <li>Communications with us</li>
+            </ul>
+
+            <h3>2. How We Use Your Information</h3>
+            <p>We use the information we collect to:</p>
+            <ul>
+                <li>Provide, maintain, and improve our services</li>
+                <li>Process and deliver your file transfers</li>
+                <li>Send you technical notices and support messages</li>
+                <li>Respond to your comments and questions</li>
+                <li>Monitor and analyze usage trends</li>
+            </ul>
+
+            <h3>3. Data Security</h3>
+            <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. All data is encrypted in transit and at rest.</p>
+
+            <h3>4. Data Storage</h3>
+            <p>Your files are stored securely on our servers. We retain your data as long as your account is active or as needed to provide you services. You can delete your data at any time through your account settings.</p>
+
+            <h3>5. Sharing of Information</h3>
+            <p>We do not share your personal information with third parties except:</p>
+            <ul>
+                <li>When required by law</li>
+                <li>To protect the rights and safety of TransferX and our users</li>
+                <li>With your explicit consent</li>
+            </ul>
+
+            <h3>6. Your Rights</h3>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access your personal information</li>
+                <li>Correct inaccurate information</li>
+                <li>Delete your account and data</li>
+                <li>Opt-out of marketing communications</li>
+            </ul>
+
+            <div class="last-updated">Last Updated: January 2026</div>
+        </div>
+
+        {% elif page == 'terms' %}
+        <!-- Terms of Service Page -->
+        <div class="legal-content" data-aos="fade-up">
+            <h2>Terms of Service</h2>
+            
+            <h3>1. Acceptance of Terms</h3>
+            <p>By using TransferX, you agree to these Terms of Service. If you do not agree, please do not use our services.</p>
+
+            <h3>2. User Accounts</h3>
+            <p>You are responsible for:</p>
+            <ul>
+                <li>Maintaining the security of your account</li>
+                <li>All activities that occur under your account</li>
+                <li>Providing accurate and complete information</li>
+                <li>Notifying us of any unauthorized use</li>
+            </ul>
+
+            <h3>3. Acceptable Use</h3>
+            <p>You agree not to use TransferX to:</p>
+            <ul>
+                <li>Upload or share illegal content</li>
+                <li>Harass, abuse, or harm others</li>
+                <li>Violate any laws or regulations</li>
+                <li>Distribute malware or malicious code</li>
+                <li>Infringe on intellectual property rights</li>
+            </ul>
+
+            <h3>4. File Content</h3>
+            <p>You retain all rights to your files and content. By uploading files, you grant TransferX permission to store and transmit them as necessary to provide the service.</p>
+
+            <h3>5. Storage Limits</h3>
+            <p>TransferX provides storage based on your account type. We reserve the right to enforce storage limits and remove content that exceeds these limits.</p>
+
+            <h3>6. Service Availability</h3>
+            <p>We strive to maintain high availability but do not guarantee uninterrupted service. We may suspend or terminate services for maintenance or security reasons.</p>
+
+            <h3>7. Termination</h3>
+            <p>We reserve the right to suspend or terminate accounts that violate these terms. You may delete your account at any time.</p>
+
+            <h3>8. Limitation of Liability</h3>
+            <p>TransferX is provided "as is" without warranties. We are not liable for any damages arising from the use of our services.</p>
+
+            <h3>9. Changes to Terms</h3>
+            <p>We may update these terms from time to time. Continued use of TransferX constitutes acceptance of the updated terms.</p>
+
+            <div class="last-updated">Last Updated: January 2026</div>
+        </div>
+
+        {% else %}
+        <!-- Home Page -->
+        <!-- Hero Section -->
+        <section class="hero-section" data-aos="fade-up" data-aos-duration="800">
+            <div class="hero-content">
+                <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">Secure File Transfer</h1>
+                <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="200">Transfer files and emails securely with TransferX. Experience the future of file sharing with our Azure Glass interface.</p>
+                <div class="hero-actions" data-aos="fade-up" data-aos-delay="300">
+                    <a href="/auth/register" class="btn-large btn-primary">
+                        <i class="bi bi-person-plus"></i> Get Started
+                    </a>
+                    <a href="/auth/login" class="btn-large btn-secondary">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <h2 data-aos="fade-up">Why Choose TransferX</h2>
+            <div class="features-grid">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <i class="bi bi-shield-check"></i>
+                    <h3>Secure Transfers</h3>
+                    <p>End-to-end encryption for all your file transfers, ensuring your data stays private and protected.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="150">
+                    <i class="bi bi-cloud-upload"></i>
+                    <h3>Fast Uploads</h3>
+                    <p>Drag and drop files with real-time progress tracking and support for multiple file uploads.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <i class="bi bi-play-circle"></i>
+                    <h3>Media Preview</h3>
+                    <p>Preview images, videos, and audio directly in your browser with our custom media players.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="250">
+                    <i class="bi bi-palette"></i>
+                    <h3>Modern UI</h3>
+                    <p>Beautiful Azure Glass interface with light and dark modes for a premium user experience.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <i class="bi bi-moon"></i>
+                    <h3>Dark Mode</h3>
+                    <p>Switch between light and dark themes for comfortable viewing in any environment.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="350">
+                    <i class="bi bi-mobile"></i>
+                    <h3>Responsive Design</h3>
+                    <p>Access your files and emails from any device with our fully responsive interface.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section" data-aos="fade-up" data-aos-duration="800">
+            <div class="stats-grid">
+                <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
+                    <span class="stat-number" id="homeTotalFiles">0</span>
+                    <span class="stat-label">Files Transferred</span>
+                </div>
+                <div class="stat-card" data-aos="zoom-in" data-aos-delay="150">
+                    <span class="stat-number" id="homeTotalUsers">0</span>
+                    <span class="stat-label">Active Users</span>
+                </div>
+                <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
+                    <span class="stat-number">99.9%</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
+                <div class="stat-card" data-aos="zoom-in" data-aos-delay="250">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Support</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section" data-aos="fade-up" data-aos-duration="800">
+            <div class="cta-content">
+                <h2 data-aos="fade-up" data-aos-delay="100">Ready to Get Started?</h2>
+                <p data-aos="fade-up" data-aos-delay="150">Join thousands of users who trust TransferX for their secure file transfers.</p>
+                <a href="/auth/register" class="btn-primary" data-aos="fade-up" data-aos-delay="200">
+                    <i class="bi bi-person-plus"></i> Create Free Account
+                </a>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+        </div>
+        <p>&copy; 2026 TransferX. All rights reserved.</p>
+    </footer>
+
+    <!-- AOS Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 50
+        });
+
+        // Toast Notification System
+        function showToast(message, title, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'bi-check-circle',
+                error: 'bi-x-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="bi ${icons[type] || icons.success}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${title || 'Notification'}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', function() {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // =============================================
+        // ANIMATE NUMBER COUNTER
+        // =============================================
+        function animateNumber(element, target) {
+            if (!element) return;
+            
+            const duration = 1500;
+            const startTime = performance.now();
+            const startValue = 0;
+            const isFloat = target % 1 !== 0;
+            
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                
+                let currentValue;
+                if (isFloat) {
+                    currentValue = eased * target;
+                    element.textContent = currentValue.toFixed(1);
+                } else {
+                    currentValue = Math.floor(eased * target);
+                    element.textContent = currentValue;
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                } else {
+                    element.textContent = isFloat ? target.toFixed(1) : target;
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        // =============================================
+        // FETCH REAL STATS FROM SERVER
+        // =============================================
+        function fetchStats() {
+            // Fetch public stats (no login required)
+            fetch('/admin/api/stats/public')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch stats');
+                    return response.json();
+                })
+                .then(data => {
+                    const totalFiles = data.total_attachments || 0;
+                    const totalUsers = data.total_users || 0;
+                    
+                    // Update home page stats
+                    const homeFiles = document.getElementById('homeTotalFiles');
+                    if (homeFiles) {
+                        animateNumber(homeFiles, totalFiles);
+                    }
+                    
+                    const homeUsers = document.getElementById('homeTotalUsers');
+                    if (homeUsers) {
+                        animateNumber(homeUsers, totalUsers);
+                    }
+                    
+                    // Update about page stats
+                    const aboutFiles = document.getElementById('aboutTotalFiles');
+                    if (aboutFiles) {
+                        animateNumber(aboutFiles, totalFiles);
+                    }
+                    
+                    const aboutUsers = document.getElementById('aboutTotalUsers');
+                    if (aboutUsers) {
+                        animateNumber(aboutUsers, totalUsers);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching stats:', error);
+                    // Set to 0 on error
+                    document.querySelectorAll('#homeTotalFiles, #aboutTotalFiles').forEach(el => {
+                        if (el) el.textContent = '0';
+                    });
+                    document.querySelectorAll('#homeTotalUsers, #aboutTotalUsers').forEach(el => {
+                        if (el) el.textContent = '0';
+                    });
+                });
+        }
+
+        // =============================================
+        // CONTACT FORM HANDLER
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch stats when page loads
+            fetchStats();
+            
+            // Refresh stats every 60 seconds
+            setInterval(fetchStats, 60000);
+            
+            const contactForm = document.getElementById('contactForm');
+            if (!contactForm) return;
+
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('contactSubmit');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+
+                const name = document.getElementById('contactName').value.trim();
+                const email = document.getElementById('contactEmail').value.trim();
+                const subject = document.getElementById('contactSubject').value;
+                const message = document.getElementById('contactMessage').value.trim();
+
+                // Validation
+                if (!name || !email || !subject || !message) {
+                    showToast('Please fill in all required fields.', 'Validation Error', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-send"></i> Send Message';
+                    return;
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast('Please enter a valid email address.', 'Validation Error', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-send"></i> Send Message';
+                    return;
+                }
+
+                const formData = {
+                    name: name,
+                    email: email,
+                    subject: subject,
+                    message: message
+                };
+
+                fetch('/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Your message has been sent successfully! We\'ll get back to you soon.', 'Message Sent', 'success');
+                        contactForm.reset();
+                    } else {
+                        showToast(data.error || 'Failed to send message. Please try again.', 'Error', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to send message. Please try again later.', 'Error', 'error');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-send"></i> Send Message';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
