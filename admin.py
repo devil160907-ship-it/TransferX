@@ -4,6 +4,7 @@ from extensions import db, csrf
 from models import User, SentEmail, Attachment
 from datetime import datetime, timedelta
 import os
+import traceback
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -227,26 +228,86 @@ def admin_emails():
 @admin_bp.route('/emails/<int:email_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_email(email_id):
-    try:
-        csrf.protect()
-    except:
-        return jsonify({'error': 'Invalid CSRF token'}), 400
-    
+    # Validate admin access first
     if not current_user.is_admin:
-        return jsonify({'error': 'Access denied'}), 403
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    email = SentEmail.query.get_or_404(email_id)
-    
-    for attachment in email.attachments:
-        if os.path.exists(attachment.file_path):
-            os.remove(attachment.file_path)
+    try:
+        # Get the email
+        email = SentEmail.query.get_or_404(email_id)
+        
+        # CSRF protection - check both headers and form data
+        csrf_token = request.headers.get('X-CSRFToken')
+        if not csrf_token:
+            csrf_token = request.form.get('csrf_token')
+        if not csrf_token:
+            # Try to get from JSON body if it's JSON
+            if request.is_json:
+                data = request.get_json()
+                csrf_token = data.get('csrf_token') if data else None
+        
+        # Validate CSRF token
+        if not csrf_token:
+            return jsonify({
+                'success': False, 
+                'error': 'CSRF token missing'
+            }), 400
+        
+        # Verify the CSRF token
+        try:
+            # Use Flask-WTF's CSRF protection
+            from flask_wtf.csrf import validate_csrf
+            validate_csrf(csrf_token)
+        except Exception as csrf_error:
+            return jsonify({
+                'success': False, 
+                'error': f'CSRF validation failed: {str(csrf_error)}'
+            }), 400
+        
+        # Get the sender user
         user = User.query.get(email.sender_id)
-        if user:
-            user.storage_used -= attachment.file_size
-    
-    db.session.delete(email)
-    db.session.commit()
-    return jsonify({'success': True})
+        
+        # Delete attachments safely
+        for attachment in email.attachments:
+            try:
+                # Only delete if file_path exists and is not empty
+                if attachment.file_path:
+                    # Check if file exists before deleting
+                    if os.path.exists(attachment.file_path):
+                        os.remove(attachment.file_path)
+                    # else: file doesn't exist, continue without error
+                
+                # Update user storage usage safely
+                if user:
+                    user.storage_used = max(
+                        0,
+                        user.storage_used - (attachment.file_size or 0)
+                    )
+            except Exception as e:
+                # Log attachment deletion error but continue
+                traceback.print_exc()
+                # Continue with other attachments
+        
+        # Delete the email (this will cascade delete attachments from DB)
+        db.session.delete(email)
+        
+        # Commit the transaction
+        db.session.commit()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        # Rollback on any error
+        db.session.rollback()
+        
+        # Log the full traceback for debugging
+        traceback.print_exc()
+        
+        # Return detailed error for debugging
+        return jsonify({
+            'success': False,
+            'error': f'Failed to delete email: {str(e)}'
+        }), 500
 
 @admin_bp.route('/attachments')
 @login_required
