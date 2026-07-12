@@ -1,0 +1,281 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Email Management - TransferX{% endblock %}
+{% block page_title %}Email Management{% endblock %}
+{% block breadcrumb %}Emails{% endblock %}
+
+{% block admin_content %}
+<div class="admin-toolbar">
+    <div style="flex:1;display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <input type="text" id="emailSearch" placeholder="Search emails..." style="flex:1;min-width:200px;padding:0.5rem 1rem;border:1px solid var(--glass-border);border-radius:10px;background:var(--bg-primary);color:var(--text-primary);" onkeyup="if(this.value.length >= 2 || this.value.length === 0) searchEmails(this.value)">
+        <select id="sortFilter" style="padding:0.5rem 1rem;border:1px solid var(--glass-border);border-radius:10px;background:var(--bg-primary);color:var(--text-primary);">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+        </select>
+        <button class="btn-danger" id="bulkDeleteEmails" style="display:none;padding:0.5rem 1.25rem;border-radius:10px;border:none;background:var(--error);color:white;cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-trash"></i> Delete Selected
+        </button>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <div class="table-header">
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <input type="checkbox" id="selectAllEmails" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
+            <span style="font-size:0.85rem;color:var(--text-light);" id="selectedEmailCount">0 selected</span>
+        </div>
+        <span style="font-size:0.85rem;color:var(--text-light);">Total: {{ emails.total }} emails</span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:40px;"></th>
+                    <th>Subject</th>
+                    <th>From</th>
+                    <th>Recipient</th>
+                    <th>Attachments</th>
+                    <th>Sent</th>
+                    <th style="width:120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for email in emails.items %}
+                <tr data-email-id="{{ email.id }}" data-email-subject="{{ email.subject|replace('"', '&quot;')|replace("'", '&#39;') }}">
+                    <td>
+                        <input type="checkbox" class="email-select" value="{{ email.id }}" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
+                    </td>
+                    <td>
+                        <div style="font-weight:500;font-size:0.9rem;">{{ email.subject|truncate(40) or 'No Subject' }}</div>
+                        <div style="font-size:0.8rem;color:var(--text-light);">{{ email.body|striptags|truncate(50) }}</div>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <div class="avatar-sm">{{ email.sender.username[0]|upper }}</div>
+                            <div>
+                                <div style="font-size:0.85rem;">{{ email.sender.full_name or email.sender.username }}</div>
+                                <small style="color:var(--text-light);">@{{ email.sender.username }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-size:0.85rem;color:var(--text-secondary);">{{ email.recipient|truncate(25) }}</td>
+                    <td>
+                        {% if email.attachments %}
+                            <span style="background:var(--glass-bg);padding:0.15rem 0.6rem;border-radius:12px;font-size:0.75rem;display:inline-flex;align-items:center;gap:0.3rem;">
+                                <i class="bi bi-paperclip"></i> {{ email.attachments|length }}
+                                <span style="color:var(--text-light);">({{ email.get_total_size()|filesizeformat }})</span>
+                            </span>
+                        {% else %}
+                            <span style="font-size:0.8rem;color:var(--text-light);">None</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.85rem;color:var(--text-light);">{{ email.sent_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{{ url_for('routes.sent_details', email_id=email.id) }}" target="_blank" class="btn-sm btn-view">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn-sm btn-delete" onclick="openEmailDeleteModal({{ email.id }}, '{{ email.subject|replace("'", "\\'")|replace('"', '&quot;') }}')" title="Delete Email">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state-admin">
+                        <i class="bi bi-envelope"></i>
+                        <h4>No Emails Found</h4>
+                        <p style="color:var(--text-light);">No emails have been sent yet.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if emails.pages > 1 %}
+    <div class="pagination-info">
+        <span class="text-muted">Showing {{ emails.items|length }} of {{ emails.total }} emails</span>
+        <div class="pagination">
+            {% if emails.has_prev %}
+            <a href="{{ url_for('admin.admin_emails', page=emails.prev_num, search=request.args.get('search', '')) }}">‹</a>
+            {% endif %}
+            {% for page in emails.iter_pages() %}
+                {% if page %}
+                    <span class="{% if page == emails.page %}active{% endif %}">
+                        <a href="{{ url_for('admin.admin_emails', page=page, search=request.args.get('search', '')) }}">{{ page }}</a>
+                    </span>
+                {% else %}
+                    <span class="disabled">…</span>
+                {% endif %}
+            {% endfor %}
+            {% if emails.has_next %}
+            <a href="{{ url_for('admin.admin_emails', page=emails.next_num, search=request.args.get('search', '')) }}">›</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Custom Delete Email Modal -->
+<div class="modal-overlay" id="deleteEmailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-exclamation-triangle" style="color:var(--error);"></i> Delete Email</h3>
+            <button class="modal-close" onclick="closeEmailDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-icon-wrapper danger">
+            <i class="bi bi-envelope-x"></i>
+        </div>
+        <div class="modal-title">Delete Email?</div>
+        <p class="modal-description">
+            Are you sure you want to delete this email?
+        </p>
+        <div class="modal-detail">
+            Subject: <strong id="deleteEmailSubject" style="color:var(--text-primary);"></strong>
+        </div>
+        <div class="modal-warning">
+            <i class="bi bi-exclamation-circle"></i>
+            This action cannot be undone. All attachments will also be permanently removed.
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEmailDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" id="confirmEmailDeleteBtn" onclick="confirmDeleteEmail()">
+                <i class="bi bi-trash"></i> Delete Email
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var deleteEmailId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select All
+        document.getElementById('selectAllEmails').addEventListener('change', function() {
+            document.querySelectorAll('.email-select').forEach(function(cb) {
+                cb.checked = this.checked;
+            }.bind(this));
+            updateEmailCount();
+        });
+
+        // Individual checkbox
+        document.querySelectorAll('.email-select').forEach(function(cb) {
+            cb.addEventListener('change', updateEmailCount);
+        });
+
+        // Bulk Delete
+        document.getElementById('bulkDeleteEmails').addEventListener('click', function() {
+            var selected = document.querySelectorAll('.email-select:checked');
+            if (selected.length === 0) return;
+            
+            var subjects = Array.from(selected).map(function(cb) {
+                var row = cb.closest('tr');
+                return row ? row.dataset.emailSubject || 'Untitled' : 'Unknown';
+            });
+            
+            if (!confirm('Delete ' + selected.length + ' email(s)?\n\n' + subjects.join('\n') + '\n\nThis action cannot be undone.')) return;
+            deleteEmails(Array.from(selected).map(function(cb) { return cb.value; }));
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEmailDeleteModal();
+            }
+        });
+
+        // Close modal on overlay click
+        document.getElementById('deleteEmailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEmailDeleteModal();
+            }
+        });
+    });
+
+    function searchEmails(query) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('search', query);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }
+
+    function updateEmailCount() {
+        var selected = document.querySelectorAll('.email-select:checked');
+        var count = selected.length;
+        document.getElementById('selectedEmailCount').textContent = count + ' selected';
+        document.getElementById('bulkDeleteEmails').style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+
+    function openEmailDeleteModal(emailId, subject) {
+        deleteEmailId = emailId;
+        document.getElementById('deleteEmailSubject').textContent = subject || 'No Subject';
+        document.getElementById('deleteEmailModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        var btn = document.getElementById('confirmEmailDeleteBtn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email';
+    }
+
+    function closeEmailDeleteModal() {
+        document.getElementById('deleteEmailModal').classList.remove('active');
+        document.body.style.overflow = '';
+        deleteEmailId = null;
+    }
+
+    function confirmDeleteEmail() {
+        if (!deleteEmailId) return;
+        var btn = document.getElementById('confirmEmailDeleteBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass"></i> Deleting...';
+        deleteEmail(deleteEmailId, btn);
+    }
+
+    function deleteEmail(emailId, btn) {
+        fetch('/admin/emails/' + emailId + '/delete', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    showToast('Email deleted successfully', 'success');
+                    closeEmailDeleteModal();
+                    setTimeout(function() { location.reload(); }, 500);
+                } else {
+                    showToast(data.error || 'Failed to delete email', 'error');
+                    if (btn) { 
+                        btn.disabled = false; 
+                        btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email'; 
+                    }
+                }
+            })
+            .catch(function() {
+                showToast('Failed to delete email', 'error');
+                if (btn) { 
+                    btn.disabled = false; 
+                    btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email'; 
+                }
+            });
+    }
+
+    function deleteEmails(emailIds) {
+        showLoading();
+        var promises = emailIds.map(function(id) {
+            return fetch('/admin/emails/' + id + '/delete', { method: 'POST' }).then(function(r) { return r.json(); });
+        });
+        Promise.all(promises)
+            .then(function(results) {
+                hideLoading();
+                var success = results.filter(function(r) { return r.success; }).length;
+                showToast(success + ' email(s) deleted', 'success');
+                setTimeout(function() { location.reload(); }, 500);
+            })
+            .catch(function() {
+                hideLoading();
+                showToast('Failed to delete emails', 'error');
+            });
+    }
+
+    window.openEmailDeleteModal = openEmailDeleteModal;
+    window.closeEmailDeleteModal = closeEmailDeleteModal;
+    window.confirmDeleteEmail = confirmDeleteEmail;
+</script>
+{% endblock %}
