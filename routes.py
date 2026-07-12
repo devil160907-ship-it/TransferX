@@ -186,7 +186,7 @@ def compose():
             )
             email.generate_public_token()
             db.session.add(email)
-            db.session.commit()
+            db.session.flush()
             
             uploaded_files = request.files.getlist('attachments')
             attachment_list = []
@@ -201,36 +201,41 @@ def compose():
                     unique_filename = f"{timestamp}_{original_filename}"
                     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
                     
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    file.save(file_path)
-                    
-                    file_size = os.path.getsize(file_path)
-                    file_category = get_file_category(original_filename)
-                    mime_type = mimetypes.guess_type(original_filename)[0] or 'application/octet-stream'
-                    
-                    attachment = Attachment(
-                        email_id=email.id,
-                        filename=unique_filename,
-                        original_filename=original_filename,
-                        file_path=file_path,
-                        file_size=file_size,
-                        file_type=file_category,
-                        mime_type=mime_type,
-                        is_image=file_category == 'image',
-                        is_video=file_category == 'video',
-                        is_audio=file_category == 'audio',
-                        is_document=file_category == 'document',
-                        is_archive=file_category == 'archive',
-                        is_code=file_category == 'code'
-                    )
-                    db.session.add(attachment)
-                    current_user.storage_used += file_size
-                    
-                    attachment_list.append({
-                        'file_path': file_path,
-                        'filename': original_filename,
-                        'mime_type': mime_type
-                    })
+                    try:
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        file.save(file_path)
+                        
+                        if os.path.exists(file_path):
+                            file_size = os.path.getsize(file_path)
+                            file_category = get_file_category(original_filename)
+                            mime_type = mimetypes.guess_type(original_filename)[0] or 'application/octet-stream'
+                            
+                            attachment = Attachment(
+                                email_id=email.id,
+                                filename=unique_filename,
+                                original_filename=original_filename,
+                                file_path=file_path,
+                                file_size=file_size,
+                                file_type=file_category,
+                                mime_type=mime_type,
+                                is_image=file_category == 'image',
+                                is_video=file_category == 'video',
+                                is_audio=file_category == 'audio',
+                                is_document=file_category == 'document',
+                                is_archive=file_category == 'archive',
+                                is_code=file_category == 'code'
+                            )
+                            db.session.add(attachment)
+                            current_user.storage_used += file_size
+                            
+                            attachment_list.append({
+                                'file_path': file_path,
+                                'filename': original_filename,
+                                'mime_type': mime_type
+                            })
+                    except Exception:
+                        traceback.print_exc()
+                        continue
             
             db.session.commit()
             
