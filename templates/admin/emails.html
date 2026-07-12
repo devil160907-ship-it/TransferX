@@ -40,7 +40,7 @@
             </thead>
             <tbody>
                 {% for email in emails.items %}
-                <tr data-email-id="{{ email.id }}" data-email-subject="{{ email.subject|replace('"', '&quot;')|replace("'", '&#39;') }}">
+                <tr data-email-id="{{ email.id }}" data-email-subject="{{ email.subject|striptags }}">
                     <td>
                         <input type="checkbox" class="email-select" value="{{ email.id }}" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
                     </td>
@@ -74,7 +74,7 @@
                             <a href="{{ url_for('routes.sent_details', email_id=email.id) }}" target="_blank" class="btn-sm btn-view">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <button class="btn-sm btn-delete" onclick="openEmailDeleteModal({{ email.id }}, '{{ email.subject|replace("'", "\\'")|replace('"', '&quot;') }}')" title="Delete Email">
+                            <button class="btn-sm btn-delete" onclick="openEmailDeleteModal('{{ email.id }}')" title="Delete Email">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -149,15 +149,20 @@
 
 <script>
     var deleteEmailId = null;
+    var csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
 
     document.addEventListener('DOMContentLoaded', function() {
         // Select All
-        document.getElementById('selectAllEmails').addEventListener('change', function() {
-            document.querySelectorAll('.email-select').forEach(function(cb) {
-                cb.checked = this.checked;
-            }.bind(this));
-            updateEmailCount();
-        });
+        var selectAll = document.getElementById('selectAllEmails');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                var checkboxes = document.querySelectorAll('.email-select');
+                checkboxes.forEach(function(cb) {
+                    cb.checked = this.checked;
+                }.bind(this));
+                updateEmailCount();
+            });
+        }
 
         // Individual checkbox
         document.querySelectorAll('.email-select').forEach(function(cb) {
@@ -165,18 +170,17 @@
         });
 
         // Bulk Delete
-        document.getElementById('bulkDeleteEmails').addEventListener('click', function() {
-            var selected = document.querySelectorAll('.email-select:checked');
-            if (selected.length === 0) return;
-            
-            var subjects = Array.from(selected).map(function(cb) {
-                var row = cb.closest('tr');
-                return row ? row.dataset.emailSubject || 'Untitled' : 'Unknown';
+        var bulkBtn = document.getElementById('bulkDeleteEmails');
+        if (bulkBtn) {
+            bulkBtn.addEventListener('click', function() {
+                var selected = document.querySelectorAll('.email-select:checked');
+                if (selected.length === 0) return;
+                
+                if (!confirm('Delete ' + selected.length + ' email(s)?\n\nThis action cannot be undone.')) return;
+                var ids = Array.from(selected).map(function(cb) { return cb.value; });
+                deleteEmails(ids);
             });
-            
-            if (!confirm('Delete ' + selected.length + ' email(s)?\n\n' + subjects.join('\n') + '\n\nThis action cannot be undone.')) return;
-            deleteEmails(Array.from(selected).map(function(cb) { return cb.value; }));
-        });
+        }
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
@@ -186,11 +190,14 @@
         });
 
         // Close modal on overlay click
-        document.getElementById('deleteEmailModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEmailDeleteModal();
-            }
-        });
+        var modal = document.getElementById('deleteEmailModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEmailDeleteModal();
+                }
+            });
+        }
     });
 
     function searchEmails(query) {
@@ -203,22 +210,39 @@
     function updateEmailCount() {
         var selected = document.querySelectorAll('.email-select:checked');
         var count = selected.length;
-        document.getElementById('selectedEmailCount').textContent = count + ' selected';
-        document.getElementById('bulkDeleteEmails').style.display = count > 0 ? 'inline-flex' : 'none';
+        var countEl = document.getElementById('selectedEmailCount');
+        var bulkBtn = document.getElementById('bulkDeleteEmails');
+        if (countEl) countEl.textContent = count + ' selected';
+        if (bulkBtn) bulkBtn.style.display = count > 0 ? 'inline-flex' : 'none';
     }
 
-    function openEmailDeleteModal(emailId, subject) {
+    function openEmailDeleteModal(emailId) {
         deleteEmailId = emailId;
-        document.getElementById('deleteEmailSubject').textContent = subject || 'No Subject';
-        document.getElementById('deleteEmailModal').classList.add('active');
+        
+        // Get subject from the row
+        var row = document.querySelector('tr[data-email-id="' + emailId + '"]');
+        var subject = 'No Subject';
+        if (row) {
+            subject = row.getAttribute('data-email-subject') || 'No Subject';
+        }
+        
+        var subjectEl = document.getElementById('deleteEmailSubject');
+        if (subjectEl) subjectEl.textContent = subject;
+        
+        var modal = document.getElementById('deleteEmailModal');
+        if (modal) modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+        
         var btn = document.getElementById('confirmEmailDeleteBtn');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email';
+        }
     }
 
     function closeEmailDeleteModal() {
-        document.getElementById('deleteEmailModal').classList.remove('active');
+        var modal = document.getElementById('deleteEmailModal');
+        if (modal) modal.classList.remove('active');
         document.body.style.overflow = '';
         deleteEmailId = null;
     }
@@ -226,54 +250,86 @@
     function confirmDeleteEmail() {
         if (!deleteEmailId) return;
         var btn = document.getElementById('confirmEmailDeleteBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass"></i> Deleting...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass"></i> Deleting...';
+        }
         deleteEmail(deleteEmailId, btn);
     }
 
     function deleteEmail(emailId, btn) {
-        fetch('/admin/emails/' + emailId + '/delete', { method: 'POST' })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    showToast('Email deleted successfully', 'success');
-                    closeEmailDeleteModal();
-                    setTimeout(function() { location.reload(); }, 500);
-                } else {
-                    showToast(data.error || 'Failed to delete email', 'error');
-                    if (btn) { 
-                        btn.disabled = false; 
-                        btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email'; 
+        var formData = new FormData();
+        formData.append('csrf_token', csrfToken);
+        formData.append('_method', 'DELETE');
+
+        fetch('/admin/emails/' + emailId + '/delete', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    try {
+                        var data = JSON.parse(text);
+                        throw new Error(data.error || 'Server error');
+                    } catch (e) {
+                        throw new Error('Server error (status ' + response.status + ')');
                     }
-                }
-            })
-            .catch(function() {
-                showToast('Failed to delete email', 'error');
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                showToast('Email deleted successfully', 'success');
+                closeEmailDeleteModal();
+                setTimeout(function() { location.reload(); }, 500);
+            } else {
+                showToast(data.error || 'Failed to delete email', 'error');
                 if (btn) { 
                     btn.disabled = false; 
                     btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email'; 
                 }
-            });
+            }
+        })
+        .catch(function(error) {
+            console.error('Delete error:', error);
+            showToast(error.message || 'Failed to delete email', 'error');
+            if (btn) { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="bi bi-trash"></i> Delete Email'; 
+            }
+        });
     }
 
     function deleteEmails(emailIds) {
         showLoading();
         var promises = emailIds.map(function(id) {
-            return fetch('/admin/emails/' + id + '/delete', { method: 'POST' }).then(function(r) { return r.json(); });
+            var formData = new FormData();
+            formData.append('csrf_token', csrfToken);
+            formData.append('_method', 'DELETE');
+            
+            return fetch('/admin/emails/' + id + '/delete', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            }).then(function(r) { return r.json(); });
         });
         Promise.all(promises)
             .then(function(results) {
                 hideLoading();
                 var success = results.filter(function(r) { return r.success; }).length;
-                showToast(success + ' email(s) deleted', 'success');
+                showToast(success + ' email(s) deleted successfully', 'success');
                 setTimeout(function() { location.reload(); }, 500);
             })
             .catch(function() {
                 hideLoading();
-                showToast('Failed to delete emails', 'error');
+                showToast('Failed to delete emails. Please try again.', 'error');
             });
     }
 
+    // Expose functions to global scope
     window.openEmailDeleteModal = openEmailDeleteModal;
     window.closeEmailDeleteModal = closeEmailDeleteModal;
     window.confirmDeleteEmail = confirmDeleteEmail;
