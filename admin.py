@@ -28,13 +28,11 @@ def admin_dashboard():
     active_users = User.query.filter_by(is_active=True).count()
     total_emails = SentEmail.query.count()
     total_attachments = Attachment.query.count()
-    
     total_storage = db.session.query(db.func.sum(Attachment.file_size)).scalar() or 0
-    
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     recent_emails = SentEmail.query.order_by(SentEmail.sent_at.desc()).limit(5).all()
     
-    return render_template('dashboard/admin.html',
+    return render_template('admin/dashboard.html',
                          total_users=total_users,
                          active_users=active_users,
                          total_emails=total_emails,
@@ -51,7 +49,7 @@ def admin_users():
         return redirect(url_for('routes.dashboard'))
     
     users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('dashboard/admin_users.html', users=users)
+    return render_template('admin/users.html', users=users)
 
 @admin_bp.route('/users/<int:user_id>/toggle')
 @login_required
@@ -60,9 +58,11 @@ def toggle_user(user_id):
         return jsonify({'error': 'Access denied'}), 403
     
     user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        return jsonify({'error': 'Cannot toggle admin account'}), 400
+    
     user.is_active = not user.is_active
     db.session.commit()
-    
     return jsonify({'active': user.is_active})
 
 @admin_bp.route('/users/<int:user_id>/delete')
@@ -72,12 +72,13 @@ def delete_user(user_id):
         return jsonify({'error': 'Access denied'}), 403
     
     user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        return jsonify({'error': 'Cannot delete admin account'}), 400
     if user.id == current_user.id:
         return jsonify({'error': 'Cannot delete your own account'}), 400
     
     db.session.delete(user)
     db.session.commit()
-    
     return jsonify({'success': True})
 
 @admin_bp.route('/users/<int:user_id>/details')
@@ -87,7 +88,6 @@ def user_details(user_id):
         return jsonify({'error': 'Access denied'}), 403
     
     user = User.query.get_or_404(user_id)
-    
     sent_emails = SentEmail.query.filter_by(sender_id=user.id, is_sent=True).count()
     total_attachments = Attachment.query.join(SentEmail).filter(SentEmail.sender_id == user.id).count()
     
@@ -108,6 +108,14 @@ def user_details(user_id):
         'total_attachments': total_attachments
     })
 
+@admin_bp.route('/storage')
+@login_required
+def admin_storage():
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('routes.dashboard'))
+    return render_template('admin/storage.html')
+
 @admin_bp.route('/storage-stats')
 @login_required
 def storage_stats():
@@ -123,26 +131,71 @@ def storage_stats():
             'max_storage': user.max_storage,
             'percentage': user.get_storage_usage_percentage()
         })
-    
     return jsonify(stats)
+
+@admin_bp.route('/activity')
+@login_required
+def admin_activity():
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('routes.dashboard'))
+    return render_template('admin/activity_logs.html')
 
 @admin_bp.route('/activity-logs')
 @login_required
 def activity_logs():
     if not current_user.is_admin:
-        flash('Access denied.', 'error')
-        return redirect(url_for('routes.dashboard'))
+        return jsonify({'error': 'Access denied'}), 403
     
-    days = request.args.get('days', 7, type=int)
+    days = request.args.get('days', 14, type=int)
     cutoff = datetime.utcnow() - timedelta(days=days)
     
     emails = SentEmail.query.filter(SentEmail.sent_at >= cutoff).count()
     new_users = User.query.filter(User.created_at >= cutoff).count()
+    attachments = Attachment.query.filter(Attachment.uploaded_at >= cutoff).count()
+    
+    timeline = []
+    for i in range(days, -1, -1):
+        date = datetime.utcnow() - timedelta(days=i)
+        date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        date_end = date_start + timedelta(days=1)
+        
+        day_emails = SentEmail.query.filter(SentEmail.sent_at >= date_start, SentEmail.sent_at < date_end).count()
+        day_users = User.query.filter(User.created_at >= date_start, User.created_at < date_end).count()
+        day_attachments = Attachment.query.filter(Attachment.uploaded_at >= date_start, Attachment.uploaded_at < date_end).count()
+        
+        if day_emails > 0:
+            timeline.append({
+                'date': date_start.isoformat(),
+                'type': 'email',
+                'description': f'{day_emails} email(s) sent',
+                'user': 'System'
+            })
+        if day_users > 0:
+            timeline.append({
+                'date': date_start.isoformat(),
+                'type': 'user',
+                'description': f'{day_users} new user(s) registered',
+                'user': 'System'
+            })
+        if day_attachments > 0:
+            timeline.append({
+                'date': date_start.isoformat(),
+                'type': 'attachment',
+                'description': f'{day_attachments} file(s) uploaded',
+                'user': 'System'
+            })
+    
+    timeline.sort(key=lambda x: x['date'], reverse=True)
+    timeline = timeline[:50]
     
     return jsonify({
         'emails': emails,
         'new_users': new_users,
-        'days': days
+        'attachments': attachments,
+        'total': emails + new_users + attachments,
+        'days': days,
+        'timeline': timeline
     })
 
 @admin_bp.route('/emails')
@@ -169,7 +222,7 @@ def admin_emails():
         page=page, per_page=per_page, error_out=False
     )
     
-    return render_template('dashboard/admin_emails.html', emails=pagination)
+    return render_template('admin/emails.html', emails=pagination)
 
 @admin_bp.route('/emails/<int:email_id>/delete', methods=['POST'])
 @login_required
@@ -188,7 +241,6 @@ def admin_delete_email(email_id):
     
     db.session.delete(email)
     db.session.commit()
-    
     return jsonify({'success': True})
 
 @admin_bp.route('/attachments')
@@ -227,3 +279,11 @@ def admin_attachments():
             'uploaded_at': a.uploaded_at.isoformat()
         } for a in attachments[:50]]
     })
+
+@admin_bp.route('/attachments-page')
+@login_required
+def admin_attachments_page():
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('routes.dashboard'))
+    return render_template('admin/attachments.html')
