@@ -958,9 +958,9 @@
                         {% endif %}
                     </div>
                     
-                    {% if attachments %}
                     <div class="email-attachments">
-                        <h4><i class="bi bi-paperclip"></i> Attachments ({{ attachments|length }})</h4>
+                        <h4><i class="bi bi-paperclip"></i> Attachments</h4>
+                        {% if attachments %}
                         <div class="attachments-grid">
                             {% for attachment in attachments %}
                             <div class="attachment-item" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
@@ -998,8 +998,12 @@
                             </div>
                             {% endfor %}
                         </div>
+                        {% else %}
+                        <p style="color: var(--text-light); font-style: italic; padding: 0.5rem 0;">
+                            No attachments found for this email.
+                        </p>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </main>
