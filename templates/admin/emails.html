@@ -117,7 +117,6 @@
     {% endif %}
 </div>
 
-<!-- Custom Delete Email Modal -->
 <div class="modal-overlay" id="deleteEmailModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -148,11 +147,18 @@
 </div>
 
 <script>
+    function getCsrfToken() {
+        var token = document.querySelector('input[name="csrf_token"]')?.value;
+        if (!token) {
+            token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        }
+        return token || '';
+    }
+
+    var csrfToken = getCsrfToken();
     var deleteEmailId = null;
-    var csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Select All
         var selectAll = document.getElementById('selectAllEmails');
         if (selectAll) {
             selectAll.addEventListener('change', function() {
@@ -164,12 +170,10 @@
             });
         }
 
-        // Individual checkbox
         document.querySelectorAll('.email-select').forEach(function(cb) {
             cb.addEventListener('change', updateEmailCount);
         });
 
-        // Bulk Delete
         var bulkBtn = document.getElementById('bulkDeleteEmails');
         if (bulkBtn) {
             bulkBtn.addEventListener('click', function() {
@@ -182,14 +186,12 @@
             });
         }
 
-        // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeEmailDeleteModal();
             }
         });
 
-        // Close modal on overlay click
         var modal = document.getElementById('deleteEmailModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
@@ -219,7 +221,6 @@
     function openEmailDeleteModal(emailId) {
         deleteEmailId = emailId;
         
-        // Get subject from the row
         var row = document.querySelector('tr[data-email-id="' + emailId + '"]');
         var subject = 'No Subject';
         if (row) {
@@ -260,10 +261,12 @@
     function deleteEmail(emailId, btn) {
         var formData = new FormData();
         formData.append('csrf_token', csrfToken);
-        formData.append('_method', 'DELETE');
 
         fetch('/admin/emails/' + emailId + '/delete', {
             method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
             body: formData,
             credentials: 'same-origin'
         })
@@ -308,10 +311,12 @@
         var promises = emailIds.map(function(id) {
             var formData = new FormData();
             formData.append('csrf_token', csrfToken);
-            formData.append('_method', 'DELETE');
             
             return fetch('/admin/emails/' + id + '/delete', {
                 method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
                 body: formData,
                 credentials: 'same-origin'
             }).then(function(r) { return r.json(); });
@@ -329,7 +334,6 @@
             });
     }
 
-    // Expose functions to global scope
     window.openEmailDeleteModal = openEmailDeleteModal;
     window.closeEmailDeleteModal = closeEmailDeleteModal;
     window.confirmDeleteEmail = confirmDeleteEmail;
