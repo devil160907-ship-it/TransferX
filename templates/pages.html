@@ -498,17 +498,6 @@
             color: var(--text-secondary);
         }
 
-        .about-content ul {
-            color: var(--text-secondary);
-            line-height: 1.8;
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .about-content ul li {
-            margin-bottom: 0.5rem;
-        }
-
         /* Contact Page Styles */
         .contact-content {
             max-width: 800px;
@@ -867,6 +856,21 @@
             pointer-events: auto;
         }
 
+        /* Loading spinner for stats */
+        .stat-loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Responsive Styles */
         @media (max-width: 992px) {
             .hero-title {
@@ -1081,20 +1085,20 @@
 
             <div class="about-stats" data-aos="fade-up" data-aos-delay="300">
                 <div class="stat-item">
-                    <div class="number" data-count="10000">0</div>
+                    <div class="number" id="aboutTotalFiles">0</div>
                     <div class="label">Files Transferred</div>
                 </div>
                 <div class="stat-item">
-                    <div class="number" data-count="5000">0</div>
+                    <div class="number" id="aboutTotalUsers">0</div>
                     <div class="label">Active Users</div>
                 </div>
                 <div class="stat-item">
-                    <div class="number" data-count="99.9">0</div>
-                    <div class="label">% Uptime</div>
+                    <div class="number">99.9%</div>
+                    <div class="label">Uptime</div>
                 </div>
                 <div class="stat-item">
-                    <div class="number" data-count="24">0</div>
-                    <div class="label">/7 Support</div>
+                    <div class="number">24/7</div>
+                    <div class="label">Support</div>
                 </div>
             </div>
 
@@ -1361,20 +1365,20 @@
         <section class="stats-section" data-aos="fade-up" data-aos-duration="800">
             <div class="stats-grid">
                 <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
-                    <span class="stat-number" data-count="10000">0</span>
+                    <span class="stat-number" id="homeTotalFiles">0</span>
                     <span class="stat-label">Files Transferred</span>
                 </div>
                 <div class="stat-card" data-aos="zoom-in" data-aos-delay="150">
-                    <span class="stat-number" data-count="5000">0</span>
+                    <span class="stat-number" id="homeTotalUsers">0</span>
                     <span class="stat-label">Active Users</span>
                 </div>
                 <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
-                    <span class="stat-number" data-count="99.9">0</span>
-                    <span class="stat-label">% Uptime</span>
+                    <span class="stat-number">99.9%</span>
+                    <span class="stat-label">Uptime</span>
                 </div>
                 <div class="stat-card" data-aos="zoom-in" data-aos-delay="250">
-                    <span class="stat-number" data-count="24">0</span>
-                    <span class="stat-label">/7 Support</span>
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Support</span>
                 </div>
             </div>
         </section>
@@ -1451,51 +1455,131 @@
             }, 5000);
         }
 
-        // Animate statistics numbers
-        document.addEventListener('DOMContentLoaded', function() {
-            const statNumbers = document.querySelectorAll('.stat-number[data-count], .about-stats .number[data-count]');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const stat = entry.target;
-                        const target = parseFloat(stat.dataset.count);
-                        const duration = 2000;
-                        const startTime = performance.now();
-                        const isFloat = target % 1 !== 0;
-                        
-                        function updateNumber(currentTime) {
-                            const elapsed = currentTime - startTime;
-                            const progress = Math.min(elapsed / duration, 1);
-                            const eased = 1 - Math.pow(1 - progress, 3);
-                            
-                            let currentValue;
-                            if (isFloat) {
-                                currentValue = eased * target;
-                                stat.textContent = currentValue.toFixed(1);
-                            } else {
-                                currentValue = Math.floor(eased * target);
-                                stat.textContent = currentValue;
-                            }
-                            
-                            if (progress < 1) {
-                                requestAnimationFrame(updateNumber);
-                            } else {
-                                stat.textContent = isFloat ? target.toFixed(1) : target;
-                            }
-                        }
-                        
-                        requestAnimationFrame(updateNumber);
-                        observer.unobserve(stat);
+        // =============================================
+        // FETCH REAL STATS FROM SERVER
+        // =============================================
+        function fetchStats() {
+            // Fetch total files (attachments count)
+            fetch('/admin/attachments')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch attachments');
+                    return response.json();
+                })
+                .then(data => {
+                    const totalFiles = data.stats?.total || 0;
+                    
+                    // Update home page stats
+                    const homeFiles = document.getElementById('homeTotalFiles');
+                    if (homeFiles) {
+                        animateNumber(homeFiles, totalFiles);
                     }
+                    
+                    // Update about page stats
+                    const aboutFiles = document.getElementById('aboutTotalFiles');
+                    if (aboutFiles) {
+                        animateNumber(aboutFiles, totalFiles);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching attachment stats:', error);
+                    // Set to 0 on error
+                    const homeFiles = document.getElementById('homeTotalFiles');
+                    if (homeFiles) homeFiles.textContent = '0';
+                    const aboutFiles = document.getElementById('aboutTotalFiles');
+                    if (aboutFiles) aboutFiles.textContent = '0';
                 });
-            }, { threshold: 0.3 });
 
-            statNumbers.forEach(stat => observer.observe(stat));
-        });
+            // Fetch total users
+            fetch('/admin/dashboard')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch user stats');
+                    return response.text();
+                })
+                .then(html => {
+                    // Parse the HTML to extract total_users
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Try to find total_users from the stats cards or page content
+                    let totalUsers = 0;
+                    
+                    // Look for total users in the page
+                    const userStats = doc.querySelector('.stat-card .stat-number');
+                    if (userStats) {
+                        totalUsers = parseInt(userStats.textContent) || 0;
+                    }
+                    
+                    // Alternative: look for total_users in the template context
+                    const userCountElement = doc.querySelector('[data-total-users]');
+                    if (userCountElement) {
+                        totalUsers = parseInt(userCountElement.dataset.totalUsers) || 0;
+                    }
+                    
+                    // Update home page stats
+                    const homeUsers = document.getElementById('homeTotalUsers');
+                    if (homeUsers) {
+                        animateNumber(homeUsers, totalUsers);
+                    }
+                    
+                    // Update about page stats
+                    const aboutUsers = document.getElementById('aboutTotalUsers');
+                    if (aboutUsers) {
+                        animateNumber(aboutUsers, totalUsers);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user stats:', error);
+                    // Set to 0 on error
+                    const homeUsers = document.getElementById('homeTotalUsers');
+                    if (homeUsers) homeUsers.textContent = '0';
+                    const aboutUsers = document.getElementById('aboutTotalUsers');
+                    if (aboutUsers) aboutUsers.textContent = '0';
+                });
+        }
 
-        // Contact Form Handler
+        // =============================================
+        // ANIMATE NUMBER COUNTER
+        // =============================================
+        function animateNumber(element, target) {
+            const duration = 1500;
+            const startTime = performance.now();
+            const startValue = 0;
+            const isFloat = target % 1 !== 0;
+            
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                
+                let currentValue;
+                if (isFloat) {
+                    currentValue = eased * target;
+                    element.textContent = currentValue.toFixed(1);
+                } else {
+                    currentValue = Math.floor(eased * target);
+                    element.textContent = currentValue;
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                } else {
+                    element.textContent = isFloat ? target.toFixed(1) : target;
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        // =============================================
+        // CONTACT FORM HANDLER
+        // =============================================
         document.addEventListener('DOMContentLoaded', function() {
+            // Fetch stats when page loads
+            fetchStats();
+            
+            // Refresh stats every 60 seconds
+            setInterval(fetchStats, 60000);
+            
             const contactForm = document.getElementById('contactForm');
             if (!contactForm) return;
 
@@ -1519,7 +1603,6 @@
                     return;
                 }
 
-                // Email validation
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
                     showToast('Please enter a valid email address.', 'Validation Error', 'error');
@@ -1528,7 +1611,6 @@
                     return;
                 }
 
-                // Prepare form data for email
                 const formData = {
                     name: name,
                     email: email,
@@ -1536,11 +1618,6 @@
                     message: message
                 };
 
-                const mailtoLink = `mailto:support@transferx.com?subject=${encodeURIComponent(`Contact: ${subject}`)}&body=${encodeURIComponent(
-                    `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
-                )}`;
-                
-                // Option 2: Using fetch to server endpoint (if available)
                 fetch('/contact', {
                     method: 'POST',
                     headers: {
@@ -1554,18 +1631,12 @@
                         showToast('Your message has been sent successfully! We\'ll get back to you soon.', 'Message Sent', 'success');
                         contactForm.reset();
                     } else {
-                        // Fallback to mailto if server fails
-                        window.location.href = mailtoLink;
-                        showToast('Message sent via email client. We\'ll review your message.', 'Message Sent', 'success');
-                        contactForm.reset();
+                        showToast(data.error || 'Failed to send message. Please try again.', 'Error', 'error');
                     }
                 })
                 .catch(error => {
-                    // Fallback to mailto if server fails
                     console.error('Error:', error);
-                    window.location.href = mailtoLink;
-                    showToast('Message sent via email client. We\'ll review your message.', 'Message Sent', 'success');
-                    contactForm.reset();
+                    showToast('Failed to send message. Please try again later.', 'Error', 'error');
                 })
                 .finally(() => {
                     submitBtn.disabled = false;
