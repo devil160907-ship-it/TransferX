@@ -42,6 +42,46 @@ def admin_dashboard():
                          recent_users=recent_users,
                          recent_emails=recent_emails)
 
+# =============================================
+# NEW: Public Stats API (no login required)
+# =============================================
+@admin_bp.route('/api/stats/public')
+def api_public_stats():
+    """Get public statistics - no login required"""
+    total_users = User.query.count()
+    total_attachments = Attachment.query.count()
+    
+    return jsonify({
+        'total_users': total_users,
+        'total_attachments': total_attachments,
+        'total_emails': SentEmail.query.count()
+    })
+
+# =============================================
+# NEW: Admin Stats API (requires login)
+# =============================================
+@admin_bp.route('/api/stats')
+@login_required
+def api_stats():
+    """Get overall platform statistics"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    total_users = User.query.count()
+    active_users = User.query.filter_by(is_active=True).count()
+    total_emails = SentEmail.query.count()
+    total_attachments = Attachment.query.count()
+    total_storage = db.session.query(db.func.sum(Attachment.file_size)).scalar() or 0
+    
+    return jsonify({
+        'total_users': total_users,
+        'active_users': active_users,
+        'total_emails': total_emails,
+        'total_attachments': total_attachments,
+        'total_storage': total_storage,
+        'total_storage_formatted': format_file_size(total_storage)
+    })
+
 @admin_bp.route('/users')
 @login_required
 def admin_users():
@@ -228,34 +268,26 @@ def admin_emails():
 @admin_bp.route('/emails/<int:email_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_email(email_id):
-    # Validate admin access first
     if not current_user.is_admin:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
     try:
-        # Get the email
         email = SentEmail.query.get_or_404(email_id)
         
-        # CSRF protection - check both headers and form data
         csrf_token = request.headers.get('X-CSRFToken')
         if not csrf_token:
             csrf_token = request.form.get('csrf_token')
-        if not csrf_token:
-            # Try to get from JSON body if it's JSON
-            if request.is_json:
-                data = request.get_json()
-                csrf_token = data.get('csrf_token') if data else None
+        if not csrf_token and request.is_json:
+            data = request.get_json()
+            csrf_token = data.get('csrf_token') if data else None
         
-        # Validate CSRF token
         if not csrf_token:
             return jsonify({
                 'success': False, 
                 'error': 'CSRF token missing'
             }), 400
         
-        # Verify the CSRF token
         try:
-            # Use Flask-WTF's CSRF protection
             from flask_wtf.csrf import validate_csrf
             validate_csrf(csrf_token)
         except Exception as csrf_error:
@@ -264,46 +296,29 @@ def admin_delete_email(email_id):
                 'error': f'CSRF validation failed: {str(csrf_error)}'
             }), 400
         
-        # Get the sender user
         user = User.query.get(email.sender_id)
         
-        # Delete attachments safely
         for attachment in email.attachments:
             try:
-                # Only delete if file_path exists and is not empty
-                if attachment.file_path:
-                    # Check if file exists before deleting
-                    if os.path.exists(attachment.file_path):
-                        os.remove(attachment.file_path)
-                    # else: file doesn't exist, continue without error
+                if attachment.file_path and os.path.exists(attachment.file_path):
+                    os.remove(attachment.file_path)
                 
-                # Update user storage usage safely
                 if user:
                     user.storage_used = max(
                         0,
                         user.storage_used - (attachment.file_size or 0)
                     )
             except Exception as e:
-                # Log attachment deletion error but continue
                 traceback.print_exc()
-                # Continue with other attachments
         
-        # Delete the email (this will cascade delete attachments from DB)
         db.session.delete(email)
-        
-        # Commit the transaction
         db.session.commit()
         
         return jsonify({'success': True})
         
     except Exception as e:
-        # Rollback on any error
         db.session.rollback()
-        
-        # Log the full traceback for debugging
         traceback.print_exc()
-        
-        # Return detailed error for debugging
         return jsonify({
             'success': False,
             'error': f'Failed to delete email: {str(e)}'
