@@ -100,7 +100,7 @@
                     <td>
                         <div class="table-actions">
                             {% if not user.is_admin %}
-                            <button class="btn-sm btn-toggle {% if not user.is_active %}inactive{% endif %}" onclick="toggleUser({{ user.id }})" title="{{ 'Deactivate' if user.is_active else 'Activate' }}">
+                            <button class="btn-sm btn-toggle {% if not user.is_active %}inactive{% endif %}" onclick="toggleUser('{{ user.id }}')" title="{{ 'Deactivate' if user.is_active else 'Activate' }}">
                                 <i class="bi bi-{{ 'toggle-on' if user.is_active else 'toggle-off' }}"></i>
                             </button>
                             {% else %}
@@ -108,11 +108,11 @@
                                 <i class="bi bi-shield-lock"></i>
                             </button>
                             {% endif %}
-                            <button class="btn-sm btn-view" onclick="viewUser({{ user.id }})" title="View Details">
+                            <button class="btn-sm btn-view" onclick="viewUser('{{ user.id }}')" title="View Details">
                                 <i class="bi bi-eye"></i>
                             </button>
                             {% if not user.is_admin and user.id != current_user.id %}
-                            <button class="btn-sm btn-delete" onclick="openDeleteModal({{ user.id }}, '{{ user.username }}')" title="Delete User">
+                            <button class="btn-sm btn-delete" onclick="openDeleteModal('{{ user.id }}', '{{ user.username|striptags }}')" title="Delete User">
                                 <i class="bi bi-trash"></i>
                             </button>
                             {% endif %}
@@ -186,19 +186,26 @@
 
 <script>
     var deleteUserId = null;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     document.addEventListener('DOMContentLoaded', function() {
         // Search and filter
-        document.getElementById('userSearch').addEventListener('input', filterUsers);
-        document.getElementById('statusFilter').addEventListener('change', filterUsers);
+        var searchInput = document.getElementById('userSearch');
+        var filterSelect = document.getElementById('statusFilter');
+        if (searchInput) searchInput.addEventListener('input', filterUsers);
+        if (filterSelect) filterSelect.addEventListener('change', filterUsers);
 
         // Select All
-        document.getElementById('selectAll').addEventListener('change', function() {
-            document.querySelectorAll('.user-select').forEach(function(cb) {
-                cb.checked = this.checked;
-            }.bind(this));
-            updateSelectedCount();
-        });
+        var selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                var checkboxes = document.querySelectorAll('.user-select');
+                checkboxes.forEach(function(cb) {
+                    cb.checked = this.checked;
+                }.bind(this));
+                updateSelectedCount();
+            });
+        }
 
         // Individual checkbox
         document.querySelectorAll('.user-select').forEach(function(cb) {
@@ -206,18 +213,17 @@
         });
 
         // Bulk Delete
-        document.getElementById('bulkDeleteBtn').addEventListener('click', function() {
-            var selected = document.querySelectorAll('.user-select:checked');
-            if (selected.length === 0) return;
-            
-            var names = Array.from(selected).map(function(cb) {
-                var row = cb.closest('tr');
-                return row ? row.dataset.username : 'Unknown';
+        var bulkBtn = document.getElementById('bulkDeleteBtn');
+        if (bulkBtn) {
+            bulkBtn.addEventListener('click', function() {
+                var selected = document.querySelectorAll('.user-select:checked');
+                if (selected.length === 0) return;
+                
+                if (!confirm('Delete ' + selected.length + ' user(s)?\n\nThis action cannot be undone.')) return;
+                var ids = Array.from(selected).map(function(cb) { return cb.value; });
+                deleteUsers(ids);
             });
-            
-            if (!confirm('Delete ' + selected.length + ' user(s): ' + names.join(', ') + '? This action cannot be undone.')) return;
-            deleteUsers(Array.from(selected).map(function(cb) { return cb.value; }));
-        });
+        }
 
         // Close modals on Escape key
         document.addEventListener('keydown', function(e) {
@@ -262,22 +268,31 @@
     function updateSelectedCount() {
         var selected = document.querySelectorAll('.user-select:checked');
         var count = selected.length;
-        document.getElementById('selectedCount').textContent = count + ' selected';
-        document.getElementById('bulkDeleteBtn').style.display = count > 0 ? 'inline-flex' : 'none';
+        var countEl = document.getElementById('selectedCount');
+        var bulkBtn = document.getElementById('bulkDeleteBtn');
+        if (countEl) countEl.textContent = count + ' selected';
+        if (bulkBtn) bulkBtn.style.display = count > 0 ? 'inline-flex' : 'none';
     }
 
     function openDeleteModal(userId, username) {
         deleteUserId = userId;
-        document.getElementById('deleteUserName').textContent = username;
-        document.getElementById('deleteUserModal').classList.add('active');
+        var nameEl = document.getElementById('deleteUserName');
+        if (nameEl) nameEl.textContent = username || 'Unknown';
+        
+        var modal = document.getElementById('deleteUserModal');
+        if (modal) modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+        
         var btn = document.getElementById('confirmDeleteBtn');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-trash"></i> Delete User';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash"></i> Delete User';
+        }
     }
 
     function closeDeleteModal() {
-        document.getElementById('deleteUserModal').classList.remove('active');
+        var modal = document.getElementById('deleteUserModal');
+        if (modal) modal.classList.remove('active');
         document.body.style.overflow = '';
         deleteUserId = null;
     }
@@ -285,84 +300,129 @@
     function confirmDeleteUser() {
         if (!deleteUserId) return;
         var btn = document.getElementById('confirmDeleteBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass"></i> Deleting...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass"></i> Deleting...';
+        }
         deleteUser(deleteUserId, btn);
     }
 
     function deleteUser(userId, btn) {
-        fetch('/admin/users/' + userId + '/delete')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    showToast('User deleted successfully', 'success');
-                    closeDeleteModal();
-                    setTimeout(function() { location.reload(); }, 500);
-                } else {
-                    showToast(data.error || 'Failed to delete user', 'error');
-                    if (btn) { 
-                        btn.disabled = false; 
-                        btn.innerHTML = '<i class="bi bi-trash"></i> Delete User'; 
-                    }
-                }
-            })
-            .catch(function() {
-                showToast('Failed to delete user', 'error');
+        fetch('/admin/users/' + userId + '/delete', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.json().then(function(data) {
+                    throw new Error(data.error || 'Server error');
+                }).catch(function() {
+                    throw new Error('Server error (status ' + response.status + ')');
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                showToast('User deleted successfully', 'success');
+                closeDeleteModal();
+                setTimeout(function() { location.reload(); }, 500);
+            } else {
+                showToast(data.error || 'Failed to delete user', 'error');
                 if (btn) { 
                     btn.disabled = false; 
                     btn.innerHTML = '<i class="bi bi-trash"></i> Delete User'; 
                 }
-            });
+            }
+        })
+        .catch(function(error) {
+            console.error('Delete error:', error);
+            showToast('Failed to delete user: ' + error.message, 'error');
+            if (btn) { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="bi bi-trash"></i> Delete User'; 
+            }
+        });
     }
 
     function deleteUsers(userIds) {
         showLoading();
         var promises = userIds.map(function(id) {
-            return fetch('/admin/users/' + id + '/delete').then(function(r) { return r.json(); });
+            return fetch('/admin/users/' + id + '/delete', {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(function(r) { return r.json(); });
         });
         Promise.all(promises)
             .then(function(results) {
                 hideLoading();
                 var success = results.filter(function(r) { return r.success; }).length;
-                showToast(success + ' user(s) deleted', 'success');
+                showToast(success + ' user(s) deleted successfully', 'success');
                 setTimeout(function() { location.reload(); }, 500);
             })
             .catch(function() {
                 hideLoading();
-                showToast('Failed to delete users', 'error');
+                showToast('Failed to delete users. Please try again.', 'error');
             });
     }
 
     function toggleUser(userId) {
         if (!confirm('Toggle this user\'s status?')) return;
         showLoading();
-        fetch('/admin/users/' + userId + '/toggle')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                hideLoading();
-                if (data.error) {
-                    showToast(data.error, 'error');
-                    return;
-                }
-                showToast('User status updated', 'success');
-                setTimeout(function() { location.reload(); }, 500);
-            })
-            .catch(function() {
-                hideLoading();
-                showToast('Failed to update user', 'error');
-            });
+        fetch('/admin/users/' + userId + '/toggle', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            hideLoading();
+            if (data.error) {
+                showToast(data.error, 'error');
+                return;
+            }
+            showToast('User status updated successfully', 'success');
+            setTimeout(function() { location.reload(); }, 500);
+        })
+        .catch(function() {
+            hideLoading();
+            showToast('Failed to update user status. Please try again.', 'error');
+        });
     }
 
     function viewUser(userId) {
         var modal = document.getElementById('userModal');
         var content = document.getElementById('userDetails');
-        modal.classList.add('active');
+        if (modal) modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        content.innerHTML = '<div style="text-align:center;padding:2rem;"><div style="width:40px;height:40px;border:3px solid var(--glass-border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div><p style="color:var(--text-secondary);">Loading...</p></div>';
+        
+        if (content) {
+            content.innerHTML = '<div style="text-align:center;padding:2rem;"><div style="width:40px;height:40px;border:3px solid var(--glass-border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div><p style="color:var(--text-secondary);">Loading...</p></div>';
+        }
 
-        fetch('/admin/users/' + userId + '/details')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+        fetch('/admin/users/' + userId + '/details', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (content) {
                 content.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">' +
                     '<div><strong>Username</strong><br><span style="color:var(--text-secondary);font-size:0.9rem;">' + data.username + '</span></div>' +
                     '<div><strong>Full Name</strong><br><span style="color:var(--text-secondary);font-size:0.9rem;">' + (data.full_name || 'N/A') + '</span></div>' +
@@ -377,14 +437,18 @@
                     '<div><strong>Joined</strong><br><span style="color:var(--text-secondary);font-size:0.9rem;">' + new Date(data.created_at).toLocaleDateString() + '</span></div>' +
                     '<div><strong>Last Login</strong><br><span style="color:var(--text-secondary);font-size:0.9rem;">' + (data.last_login ? new Date(data.last_login).toLocaleString() : 'Never') + '</span></div>' +
                     '</div>';
-            })
-            .catch(function() {
+            }
+        })
+        .catch(function() {
+            if (content) {
                 content.innerHTML = '<p style="text-align:center;color:var(--error);">Failed to load user details</p>';
-            });
+            }
+        });
     }
 
     function closeUserModal() {
-        document.getElementById('userModal').classList.remove('active');
+        var modal = document.getElementById('userModal');
+        if (modal) modal.classList.remove('active');
         document.body.style.overflow = '';
     }
 
@@ -396,6 +460,7 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
+    // Expose functions to global scope
     window.openDeleteModal = openDeleteModal;
     window.closeDeleteModal = closeDeleteModal;
     window.confirmDeleteUser = confirmDeleteUser;
