@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Verify Your Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #F0F7FF 0%, #E8F0FE 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(79,140,255,0.15);
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4F8CFF;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        
+        h1 {
+            color: #1A2332;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        p {
+            color: #4A5568;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4F8CFF, #6C63FF);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(79,140,255,0.3);
+            width: auto;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+        }
+        
+        .btn:hover {
+            box-shadow: 0 6px 25px rgba(79,140,255,0.4);
+        }
+        
+        .btn-wrapper {
+            text-align: center;
+            padding: 5px 0;
+        }
+        
+        .code-box {
+            background: rgba(79,140,255,0.08);
+            border: 1px solid rgba(79,140,255,0.15);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #4F8CFF;
+            margin: 20px 0;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #A0AEC0;
+            font-size: 0.75rem;
+            margin-top: 30px;
+            padding: 0 10px;
+        }
+        
+        .footer p {
+            color: #A0AEC0;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+        }
+        
+        .small-text {
+            font-size: 0.85rem;
+            color: #A0AEC0;
+            text-align: center;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .card {
+                padding: 24px 18px;
+                border-radius: 16px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+                margin-bottom: 16px;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 16px;
+            }
+            
+            p {
+                font-size: 0.95rem;
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                font-size: 0.95rem;
+                min-width: 160px;
+                width: 100%;
+                max-width: 280px;
+                border-radius: 10px;
+            }
+            
+            .code-box {
+                font-size: 0.75rem;
+                padding: 12px;
+                border-radius: 10px;
+                margin: 16px 0;
+            }
+            
+            .small-text {
+                font-size: 0.8rem;
+            }
+            
+            .footer {
+                margin-top: 20px;
+            }
+            
+            .footer p {
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .card {
+                padding: 18px 14px;
+                border-radius: 14px;
+            }
+            
+            .logo {
+                font-size: 1.6rem;
+                margin-bottom: 12px;
+            }
+            
+            h1 {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+            
+            p {
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+            }
+            
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.85rem;
+                min-width: 140px;
+                border-radius: 8px;
+                margin: 14px 0;
+            }
+            
+            .code-box {
+                font-size: 0.65rem;
+                padding: 10px;
+                margin: 12px 0;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .card {
+                padding: 14px 10px;
+            }
+            
+            .logo {
+                font-size: 1.4rem;
+            }
+            
+            h1 {
+                font-size: 1rem;
+            }
+            
+            p {
+                font-size: 0.8rem;
+            }
+            
+            .btn {
+                font-size: 0.8rem;
+                padding: 8px 14px;
+                min-width: 120px;
+            }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .btn {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">TransferX</div>
+            <h1>Verify Your Email Address</h1>
+            <p>Hello {{ username }},</p>
+            <p>Thank you for registering with TransferX. Please verify your email address by clicking the button below:</p>
+            <div class="btn-wrapper">
+                <a href="{{ verification_url }}" class="btn">Verify Email</a>
+            </div>
+            <p class="small-text">If the button doesn't work, copy and paste this link into your browser:</p>
+            <div class="code-box">{{ verification_url }}</div>
+            <p class="small-text">This link will expire in 24 hours.</p>
+            <p class="small-text" style="margin-top: 12px;">If you didn't create an account with TransferX, please ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 TransferX. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
