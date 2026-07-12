@@ -148,8 +148,13 @@
 
 <script>
     function getCsrfToken() {
+        // Try multiple sources for CSRF token
         var token = document.querySelector('input[name="csrf_token"]')?.value;
         if (!token) {
+            token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        }
+        if (!token) {
+            // Try to get from the CSRF token meta tag used by Flask-WTF
             token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         }
         return token || '';
@@ -259,26 +264,33 @@
     }
 
     function deleteEmail(emailId, btn) {
+        // Get CSRF token from multiple sources
+        var csrfToken = getCsrfToken();
+        
         var formData = new FormData();
         formData.append('csrf_token', csrfToken);
 
         fetch('/admin/emails/' + emailId + '/delete', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: formData,
+            body: new URLSearchParams({
+                'csrf_token': csrfToken
+            }),
             credentials: 'same-origin'
         })
         .then(function(response) {
             if (!response.ok) {
-                return response.text().then(function(text) {
-                    try {
-                        var data = JSON.parse(text);
-                        throw new Error(data.error || 'Server error');
-                    } catch (e) {
-                        throw new Error('Server error (status ' + response.status + ')');
-                    }
+                return response.json().then(function(data) {
+                    throw new Error(data.error || 'Server error (status ' + response.status + ')');
+                }).catch(function() {
+                    // If response is not JSON, get text
+                    return response.text().then(function(text) {
+                        throw new Error('Server error (status ' + response.status + '): ' + text);
+                    });
                 });
             }
             return response.json();
@@ -308,6 +320,7 @@
 
     function deleteEmails(emailIds) {
         showLoading();
+        var csrfToken = getCsrfToken();
         var promises = emailIds.map(function(id) {
             var formData = new FormData();
             formData.append('csrf_token', csrfToken);
@@ -315,9 +328,12 @@
             return fetch('/admin/emails/' + id + '/delete', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: formData,
+                body: new URLSearchParams({
+                    'csrf_token': csrfToken
+                }),
                 credentials: 'same-origin'
             }).then(function(r) { return r.json(); });
         });
